@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 
-from ingestion.cleaning import build_clean_dataframe
+from core.utils import read_json
+from ingestion.cleaning import build_clean_dataframe, write_clean_artifacts
 from ingestion.crossref import PaperRecord
 
 
@@ -65,6 +67,38 @@ def main() -> None:
         f"Title: {row['title']} | Authors: {row['authors_joined']} | Summary: {row['summary']}"
     )
     assert df["paper_id"].is_unique
+    stats = df.attrs["cleaning_stats"]
+    assert stats == {
+        "input_records": 3,
+        "output_records": 1,
+        "filtered_missing_paper_id": 0,
+        "filtered_missing_title": 0,
+        "filtered_short_summary": 1,
+        "filtered_invalid_published": 0,
+        "deduplicated_paper_id": 1,
+        "min_summary_chars": 100,
+        "filtered_total": 2,
+    }
+
+    output_dir = Path(__file__).resolve().parents[1] / "data" / "clean"
+    sample_paths = [
+        output_dir / ".cp1_sample_papers_clean.csv",
+        output_dir / ".cp1_sample_papers_clean.json",
+        output_dir / ".cp1_sample_cleaning_report.json",
+    ]
+    try:
+        persisted_stats = write_clean_artifacts(
+            df,
+            csv_path=sample_paths[0],
+            json_path=sample_paths[1],
+            report_path=sample_paths[2],
+        )
+        assert sample_paths[0].exists()
+        assert len(read_json(sample_paths[1])) == 1
+        assert read_json(sample_paths[2]) == persisted_stats
+    finally:
+        for path in sample_paths:
+            path.unlink(missing_ok=True)
     print("CP1 sample validation passed.")
 
 
