@@ -145,4 +145,24 @@ def build_clean_dataframe(records: list[PaperRecord], run_date: datetime) -> pd.
     stats["output_records"] = len(dataframe)
     stats["filtered_total"] = len(records) - len(dataframe)
     dataframe.attrs["cleaning_stats"] = stats
+    dataframe.attrs["cleaning_summary"] = {
+        "filtered_count": (
+            stats["filtered_missing_paper_id"]
+            + stats["filtered_missing_title"]
+            + stats["filtered_short_summary"]
+            + stats["filtered_invalid_published"]
+        ),
+        "deduplicated_count": stats["deduplicated_paper_id"],
+        "reason_counts": {
+            "filtered": {
+                "missing_paper_id": stats["filtered_missing_paper_id"],
+                "missing_title": stats["filtered_missing_title"],
+                "short_summary": stats["filtered_short_summary"],
+                "invalid_published": stats["filtered_invalid_published"],
+            },
+            "deduplicated": {
+                "paper_id": stats["deduplicated_paper_id"],
+            },
+        },
+    }
     return dataframe
