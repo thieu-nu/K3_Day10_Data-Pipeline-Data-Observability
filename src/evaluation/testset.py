@@ -24,6 +24,10 @@ QUESTIONS_PER_TYPE = 3
 MIN_DOCUMENTS = 5
 MIN_SUMMARY_CHARS = 40
 MIN_GROUND_TRUTH_CHARS = 3
+# retrieval.qa answers a summary question with first_sentence(summary). Real abstracts
+# sometimes open with a bare section label ("Abstract Background."), which makes a
+# two-token ground truth that token F1 cannot score meaningfully, so those rows are skipped.
+MIN_GROUND_TRUTH_WORDS = 6
 
 SEMANTIC_TOPIC_TYPE = "semantic_topic"
 QUESTION_TYPES = ("summary", "authors", "date", "categories", SEMANTIC_TOPIC_TYPE)
@@ -57,6 +61,7 @@ QA_ROUTED_TYPE = {
 # every query stays checkable against the record it points at.
 TOPIC_WINDOW_SIZES = (5, 4, 6, 3)
 MIN_TOPIC_CONTENT_WORDS = 2
+MIN_TOPIC_PHRASE_WORDS = 3
 MIN_TOPIC_WORD_LENGTH = 3
 TOPIC_STOPWORDS = frozenset(
     """a an and are as at be been but by for from has have how in into is it its of on or
@@ -108,6 +113,26 @@ def _content_words(phrase: str) -> list[str]:
     return [token for token in tokens if len(token) >= MIN_TOPIC_WORD_LENGTH and token not in TOPIC_STOPWORDS]
 
 
+def _is_edge_filler(word: str) -> bool:
+    token = re.sub(r"[^a-z0-9]+", "", word.lower())
+    return not token or len(token) < MIN_TOPIC_WORD_LENGTH or token in TOPIC_STOPWORDS
+
+
+def _trim_phrase_edges(words: list[str]) -> list[str]:
+    """Drop stopwords from both ends of a window.
+
+    Without this a window can end on a dangling preposition - "Adapting Large Language
+    Models for" - which reads badly and adds nothing to the query. Trimming whole words off
+    the ends keeps the phrase a contiguous, verbatim span of its source.
+    """
+    start, end = 0, len(words)
+    while start < end and _is_edge_filler(words[start]):
+        start += 1
+    while end > start and _is_edge_filler(words[end - 1]):
+        end -= 1
+    return words[start:end]
+
+
 def _document_haystacks(records: list[dict[str, Any]]) -> dict[str, str]:
     return {
         _text(row["paper_id"]): f"{_text(row['title'])} {_text(row['summary'])}".lower()
@@ -136,7 +161,10 @@ def _topic_phrase(row: dict[str, Any], haystacks: dict[str, str]) -> str | None:
             if size >= len(words):
                 continue
             for start in range(len(words) - size + 1):
-                phrase = " ".join(words[start : start + size]).strip(" ,.;:!?-—")
+                window = _trim_phrase_edges(words[start : start + size])
+                if len(window) < MIN_TOPIC_PHRASE_WORDS:
+                    continue
+                phrase = " ".join(window).strip(" ,.;:!?-—")
                 if not phrase or "'" in phrase:
                     continue
                 if len(_content_words(phrase)) < MIN_TOPIC_CONTENT_WORDS:
@@ -150,14 +178,24 @@ def _topic_phrase(row: dict[str, Any], haystacks: dict[str, str]) -> str | None:
     return None
 
 
-def _build_semantic_topic_question(
-    row: dict[str, Any], haystacks: dict[str, str]
-) -> tuple[str, str] | None:
+def _summary_ground_truth(row: dict[str, Any]) -> str | None:
+    """The answer retrieval.qa would give for a summary-routed question, if it is usable."""
     summary = _text(row["summary"])
     if _is_blank(summary) or len(summary) < MIN_SUMMARY_CHARS:
         return None
     ground_truth = first_sentence(summary)
     if len(ground_truth) < MIN_GROUND_TRUTH_CHARS:
+        return None
+    if len(ground_truth.split()) < MIN_GROUND_TRUTH_WORDS:
+        return None
+    return ground_truth
+
+
+def _build_semantic_topic_question(
+    row: dict[str, Any], haystacks: dict[str, str]
+) -> tuple[str, str] | None:
+    ground_truth = _summary_ground_truth(row)
+    if ground_truth is None:
         return None
     phrase = _topic_phrase(row, haystacks)
     if phrase is None:
@@ -181,11 +219,8 @@ def _title_reference(title: str) -> str:
 
 
 def _build_summary_question(row: dict[str, Any]) -> tuple[str, str] | None:
-    summary = _text(row["summary"])
-    if _is_blank(summary) or len(summary) < MIN_SUMMARY_CHARS:
-        return None
-    ground_truth = first_sentence(summary)
-    if len(ground_truth) < MIN_GROUND_TRUTH_CHARS:
+    ground_truth = _summary_ground_truth(row)
+    if ground_truth is None:
         return None
     return f"Summarize the paper titled {_title_reference(_text(row['title']))}.", ground_truth
 

@@ -17,6 +17,7 @@ from evaluation.testset import (
     QUESTION_TYPES,
     SAMPLE_KEYS,
     SEMANTIC_TOPIC_TYPE,
+    TOPIC_STOPWORDS,
     TestSetValidationError,
     build_test_set,
     has_quoted_span,
@@ -222,6 +223,51 @@ def test_duplicate_titles_do_not_produce_the_same_question_twice(tmp_path):
     samples, _ = build(tmp_path, pd.DataFrame(rows), questions_per_type=8)
     keys = [(s["question_type"], s["question"]) for s in samples]
     assert len(keys) == len(set(keys))
+
+
+def test_semantic_topic_phrase_never_starts_or_ends_on_a_stopword(tmp_path):
+    """A window like "Adapting Large Language Models for" must lose its dangling preposition."""
+    rows = [
+        make_clean_row(index, title=f"Adapting Large Language Models for Clinical Domain {index}")
+        for index in range(8)
+    ]
+    samples, _ = build(tmp_path, pd.DataFrame(rows), questions_per_type=8)
+    semantic = [s for s in samples if s["question_type"] == SEMANTIC_TOPIC_TYPE]
+    assert semantic
+    for sample in semantic:
+        phrase = sample["question"].removeprefix("Which paper discusses ").removesuffix("?")
+        words = phrase.split()
+        assert words[0].lower() not in TOPIC_STOPWORDS, phrase
+        assert words[-1].lower() not in TOPIC_STOPWORDS, phrase
+        assert len(words) >= 3
+
+
+def test_row_whose_first_sentence_is_a_bare_section_label_is_skipped(tmp_path):
+    """Real abstracts open with things like "Abstract Background." - a useless ground truth."""
+    rows = [make_clean_row(index) for index in range(8)]
+    rows[0]["summary"] = "Abstract Background. " + "This paper then explains the method at length. " * 3
+    blocked = rows[0]["paper_id"]
+    samples, _ = build(tmp_path, pd.DataFrame(rows), questions_per_type=8)
+    summary_like = {
+        sample["ground_truth_doc_ids"][0]
+        for sample in samples
+        if sample["question_type"] in {"summary", SEMANTIC_TOPIC_TYPE}
+    }
+    assert blocked not in summary_like
+
+
+def test_short_ground_truth_does_not_block_metadata_questions(tmp_path):
+    """Only the summary-routed types need a usable first sentence; authors/date do not."""
+    rows = [make_clean_row(index) for index in range(8)]
+    rows[0]["summary"] = "Abstract Background."
+    allowed = rows[0]["paper_id"]
+    samples, _ = build(tmp_path, pd.DataFrame(rows), questions_per_type=8)
+    metadata_docs = {
+        sample["ground_truth_doc_ids"][0]
+        for sample in samples
+        if sample["question_type"] in {"authors", "date", "categories"}
+    }
+    assert allowed in metadata_docs
 
 
 def test_semantic_topic_is_accepted_by_the_validator(tmp_path, clean_df):
