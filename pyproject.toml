@@ -24,6 +24,11 @@ dependencies = [
 dev = [
   "pytest>=8.3.2",
 ]
+# Demo UI only; the pipelines and the test suite do not need it.
+# >=1.36 for st.bar_chart(stack=...), which the comparison chart relies on.
+demo = [
+  "streamlit>=1.36",
+]
 
 [build-system]
 requires = ["setuptools>=80.0.0"]

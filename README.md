@@ -226,6 +226,38 @@ Các chỉ số trọng tâm:
 
 Mục tiêu không chỉ là pipeline chạy xong, mà phải có bằng chứng cho thấy data corruption làm thay đổi chất lượng agent và repair giúp khôi phục chất lượng.
 
+## 6b. Giao diện demo
+
+Sau khi cả hai pipeline đã chạy, mở giao diện để xem toàn bộ kết quả:
+
+```bash
+uv run --extra demo streamlit run app/streamlit_app.py
+```
+
+Nếu dùng pip và đã kích hoạt `.venv`:
+
+```bash
+python -m pip install -e ".[demo]"
+```
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+Giao diện mở tại `http://localhost:8501` với 7 tab:
+
+| Tab                    | Nội dung                                                                          |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| Tổng quan            | Cấu hình lần chạy, fingerprint của evaluation set, chỉ số chính 3 trạng thái |
+| So sánh              | Bảng baseline/corrupted/repaired kèm delta và biểu đồ chuẩn hóa               |
+| Quality & freshness    | Từng data quality check và freshness report của mỗi trạng thái                 |
+| Câu hỏi              | Đối chiếu từng câu hỏi qua 3 trạng thái, đánh dấu câu bị kém đi           |
+| Corruption log         | Các kịch bản corruption và toàn bộ record bị ảnh hưởng                       |
+| Hỏi thử              | Truy vấn trực tiếp vào index baseline/corrupted/repaired                          |
+| Báo cáo              | Đọc và tải hai file markdown báo cáo                                            |
+
+Giao diện chỉ đọc artifact trong `data/`, không tính lại và không sinh số liệu. Artifact chưa có thì tab báo thiếu kèm lệnh cần chạy; metric `null` hiển thị `N/A` chứ không đổi thành `0`.
+
 ## 7. Lỗi setup thường gặp
 
 | Triệu chứng                                         | Nguyên nhân thường gặp                          | Cách kiểm tra/xử lý                                                             |
