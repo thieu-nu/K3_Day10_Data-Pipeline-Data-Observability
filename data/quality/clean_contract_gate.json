@@ -1,0 +1,111 @@
+{
+  "contract_version": "clean-v1",
+  "status": "GO",
+  "checked_at": "2026-08-06T04:27:10.516546+00:00",
+  "artifacts": {
+    "raw_response": {
+      "path": "data/raw/crossref_response.json",
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 238041,
+      "sha256": "372d28f5a0872b0f121da986afb8c5d87afdb64fe81a922e5cd7d8b55e50ce48"
+    },
+    "raw_records": {
+      "path": "data/raw/crossref_records.json",
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 57019,
+      "sha256": "bd273f99d6b9ce477b82983bdfea0e8d820e7a9e86b46b05f6d23b7e2a7bb366"
+    },
+    "clean_csv": {
+      "path": "data/clean/papers_clean.csv",
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 98287,
+      "sha256": "89dae7ddc9e73c586fa56be4072fbb7e2f9f49491b186c7c098fc43fa85060ca"
+    },
+    "clean_json": {
+      "path": "data/clean/papers_clean.json",
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 111974,
+      "sha256": "a805ea3cce587843cecbe78fafd3727c21c018102c095050f52979c1d5109d0a"
+    },
+    "cleaning_summary": {
+      "path": "data/clean/cleaning_summary.json",
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 354,
+      "sha256": "b9a963ec710847254ad977f858a7492371c0a0ec721a92a10b2475bb5311bea9"
+    }
+  },
+  "counts": {
+    "raw_count": 24,
+    "clean_csv_count": 24,
+    "clean_json_count": 24,
+    "filtered_count": 0,
+    "deduplicated_count": 0
+  },
+  "schema": {
+    "required_raw_fields": [
+      "paper_id",
+      "title",
+      "summary",
+      "authors",
+      "categories",
+      "primary_category",
+      "published",
+      "updated",
+      "abs_url",
+      "pdf_url",
+      "comment"
+    ],
+    "required_clean_columns": [
+      "paper_id",
+      "title",
+      "summary",
+      "published",
+      "age_days",
+      "authors_joined",
+      "categories_joined",
+      "summary_chars",
+      "text_for_embedding",
+      "abs_url",
+      "pdf_url"
+    ],
+    "clean_csv_columns": [
+      "paper_id",
+      "title",
+      "summary",
+      "authors_joined",
+      "categories_joined",
+      "primary_category",
+      "published",
+      "updated",
+      "age_days",
+      "summary_chars",
+      "text_for_embedding",
+      "abs_url",
+      "pdf_url",
+      "comment"
+    ],
+    "clean_json_columns": [
+      "paper_id",
+      "title",
+      "summary",
+      "authors_joined",
+      "categories_joined",
+      "primary_category",
+      "published",
+      "updated",
+      "age_days",
+      "summary_chars",
+      "text_for_embedding",
+      "abs_url",
+      "pdf_url",
+      "comment"
+    ]
+  },
+  "clean_snapshot_sha256": "a805ea3cce587843cecbe78fafd3727c21c018102c095050f52979c1d5109d0a",
+  "blockers": []
+}
