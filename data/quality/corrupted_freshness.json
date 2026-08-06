@@ -1,0 +1,23 @@
+{
+  "evaluated_at": "2026-08-06T05:18:31.620836+00:00",
+  "report_path": "D:\\CODE\\AITHUCCHIEN\\LABS\\K3_Day10_Data-Pipeline-Data-Observability\\data\\quality\\corrupted_freshness.json",
+  "dataset_path": null,
+  "measured_from": [
+    "published",
+    "age_days"
+  ],
+  "row_count": 23,
+  "latest_published": "2026-07-10T00:00:00+00:00",
+  "oldest_published": "2020-02-04T00:00:00+00:00",
+  "min_age_days": 27.0,
+  "mean_age_days": 372.2609,
+  "max_age_days": 2375.0,
+  "threshold_days": 180,
+  "stale_rows": 3,
+  "stale_row_rate": 0.130435,
+  "invalid_or_missing_date_rows": 0,
+  "invalid_or_missing_age_rows": 0,
+  "future_dated_rows": 0,
+  "status": "stale",
+  "reason": "Dataset is not fresh: 3/23 row(s) exceed the 180-day threshold."
+}

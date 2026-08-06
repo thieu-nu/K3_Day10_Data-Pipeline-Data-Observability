@@ -1,0 +1,187 @@
+{
+  "report_name": "repaired_quality",
+  "report_path": "D:\\CODE\\AITHUCCHIEN\\LABS\\K3_Day10_Data-Pipeline-Data-Observability\\data\\quality\\repaired_quality.json",
+  "evaluated_at": "2026-08-06T05:19:21.282938+00:00",
+  "dataset_rows": 24,
+  "schema_version": "clean-v1",
+  "freshness_threshold_days": 180,
+  "checks": [
+    {
+      "check_name": "dataset_not_empty",
+      "quality_dimension": "completeness",
+      "status": "pass",
+      "observed_value": 24,
+      "expected_condition": "row_count > 0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "Dataset holds 24 row(s)."
+    },
+    {
+      "check_name": "required_columns_present",
+      "quality_dimension": "validity",
+      "status": "pass",
+      "observed_value": [],
+      "expected_condition": "all of ['paper_id', 'title', 'summary', 'text_for_embedding', 'published', 'authors_joined', 'categories_joined', 'abs_url', 'pdf_url', 'age_days'] present",
+      "affected_count": 0,
+      "total_count": 10,
+      "message": "All required columns are present."
+    },
+    {
+      "check_name": "paper_id_not_null",
+      "quality_dimension": "completeness",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "null_rate == 0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0 row(s) have a null paper_id."
+    },
+    {
+      "check_name": "paper_id_not_blank",
+      "quality_dimension": "completeness",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "blank_rate == 0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0 row(s) have a blank (non-null but empty) paper_id."
+    },
+    {
+      "check_name": "paper_id_unique",
+      "quality_dimension": "uniqueness",
+      "status": "pass",
+      "observed_value": 0,
+      "expected_condition": "duplicate_count == 0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0 paper_id value(s) appear more than once."
+    },
+    {
+      "check_name": "title_present",
+      "quality_dimension": "completeness",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "missing_rate <= 0.0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or blank `title`."
+    },
+    {
+      "check_name": "summary_present",
+      "quality_dimension": "completeness",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "missing_rate <= 0.1",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or blank `summary`."
+    },
+    {
+      "check_name": "text_for_embedding_present",
+      "quality_dimension": "completeness",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "missing_rate <= 0.0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or blank `text_for_embedding`."
+    },
+    {
+      "check_name": "authors_joined_present",
+      "quality_dimension": "completeness",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "missing_rate <= 0.2",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or blank `authors_joined`."
+    },
+    {
+      "check_name": "categories_joined_present",
+      "quality_dimension": "completeness",
+      "status": "fail",
+      "observed_value": 1.0,
+      "expected_condition": "missing_rate <= 0.2",
+      "affected_count": 24,
+      "total_count": 24,
+      "message": "24/24 row(s) have a missing or blank `categories_joined`."
+    },
+    {
+      "check_name": "published_parseable",
+      "quality_dimension": "validity",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "unparseable_rate == 0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or unparseable `published` date."
+    },
+    {
+      "check_name": "age_days_numeric",
+      "quality_dimension": "validity",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "non_numeric_rate == 0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or non-numeric `age_days`."
+    },
+    {
+      "check_name": "age_days_not_negative",
+      "quality_dimension": "validity",
+      "status": "pass",
+      "observed_value": 0,
+      "expected_condition": "age_days >= -1",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0 row(s) are dated more than 1 day(s) in the future."
+    },
+    {
+      "check_name": "duplicate_rows",
+      "quality_dimension": "uniqueness",
+      "status": "pass",
+      "observed_value": 0,
+      "expected_condition": "duplicate_row_count == 0",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0 fully duplicated row(s)."
+    },
+    {
+      "check_name": "abs_url_valid",
+      "quality_dimension": "validity",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "invalid_url_rate <= 0.5",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or non-http(s) `abs_url`."
+    },
+    {
+      "check_name": "pdf_url_valid",
+      "quality_dimension": "validity",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "invalid_url_rate <= 0.5",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) have a missing or non-http(s) `pdf_url`."
+    },
+    {
+      "check_name": "data_within_freshness_threshold",
+      "quality_dimension": "freshness",
+      "status": "pass",
+      "observed_value": 0.0,
+      "expected_condition": "stale_rate <= 0.5 with age_days <= 180",
+      "affected_count": 0,
+      "total_count": 24,
+      "message": "0/24 row(s) are older than the 180-day freshness threshold."
+    }
+  ],
+  "summary": {
+    "total": 17,
+    "passed": 16,
+    "failed": 1,
+    "warned": 0,
+    "overall_status": "fail"
+  }
+}

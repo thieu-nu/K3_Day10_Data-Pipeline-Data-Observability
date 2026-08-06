@@ -1,0 +1,58 @@
+{
+  "state": "repaired",
+  "started_at": "2026-08-06T05:18:32.566128+00:00",
+  "completed_at": "2026-08-06T05:19:21.266199+00:00",
+  "evaluation_set_path": "D:\\CODE\\AITHUCCHIEN\\LABS\\K3_Day10_Data-Pipeline-Data-Observability\\data\\eval\\test_set.json",
+  "evaluation_set_fingerprint": "a9eb111d8faaa7ebc6ced787215d72133d8fb1eaf784800c92d5c06296844279",
+  "dataset_path": "D:\\CODE\\AITHUCCHIEN\\LABS\\K3_Day10_Data-Pipeline-Data-Observability\\data\\clean\\papers_clean_repaired.csv",
+  "collection_name": "papers-repaired",
+  "index_document_count": 24,
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "top_k": 4,
+  "samples": 12,
+  "evaluated_questions": 12,
+  "failed_questions": 0,
+  "hit_count": 12,
+  "retrieval_hit_rate": 1.0,
+  "semantic_samples": 3,
+  "semantic_hit_count": 3,
+  "semantic_retrieval_hit_rate": 1.0,
+  "exact_lookup_samples": 9,
+  "exact_lookup_hit_count": 9,
+  "exact_lookup_success_rate": 1.0,
+  "mean_token_f1": 1.0,
+  "token_f1_definition": "Symmetric F1 over the set of unique whitespace-separated tokens of each side, after lowercasing and whitespace normalisation. Punctuation is not stripped and token repetition is ignored. Returns 0.0 when either side has no tokens.",
+  "judge_status": "partial",
+  "judge_provider": "openrouter",
+  "judge_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "judge_rubric_version": "role5-judge-v1",
+  "judge_success_count": 9,
+  "judge_failure_count": 3,
+  "judge_accuracy": 1.0,
+  "mean_judge_score": 5.0,
+  "mean_judge_score_scale": "1-5",
+  "judge_init_error": null,
+  "errors": [
+    {
+      "id": "semantic_topic-10-52060-juptik-v4i1-4318",
+      "stage": "judge",
+      "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1786060800000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Res..."
+    },
+    {
+      "id": "semantic_topic-10-55041-isjem07213",
+      "stage": "judge",
+      "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1786060800000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Res..."
+    },
+    {
+      "id": "semantic_topic-10-35314-3y9hy151",
+      "stage": "judge",
+      "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1786060800000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Res..."
+    }
+  ],
+  "warnings": [],
+  "ragas": {
+    "skipped": "Set RUN_RAGAS=1 to enable the slower Ragas pass."
+  }
+}

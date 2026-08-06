@@ -1,0 +1,23 @@
+{
+  "evaluated_at": "2026-08-06T05:19:21.283937+00:00",
+  "report_path": "D:\\CODE\\AITHUCCHIEN\\LABS\\K3_Day10_Data-Pipeline-Data-Observability\\data\\quality\\repaired_freshness.json",
+  "dataset_path": null,
+  "measured_from": [
+    "published",
+    "age_days"
+  ],
+  "row_count": 24,
+  "latest_published": "2026-08-01T00:00:00+00:00",
+  "oldest_published": "2026-02-12T00:00:00+00:00",
+  "min_age_days": 5.0,
+  "mean_age_days": 76.5833,
+  "max_age_days": 175.0,
+  "threshold_days": 180,
+  "stale_rows": 0,
+  "stale_row_rate": 0.0,
+  "invalid_or_missing_date_rows": 0,
+  "invalid_or_missing_age_rows": 0,
+  "future_dated_rows": 0,
+  "status": "fresh",
+  "reason": "All 24 row(s) have a usable date and an age within the 180-day threshold (max age 175.0 day(s))."
+}

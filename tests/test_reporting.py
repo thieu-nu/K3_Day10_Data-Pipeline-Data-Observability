@@ -488,6 +488,20 @@ def test_no_degradation_is_reported_honestly(tmp_path):
     assert "no example is invented" in text
 
 
+def test_corruption_log_listing_an_event_twice_is_not_reported_twice(tmp_path):
+    """A log that both groups and flattens its events must still link each record once."""
+    event = {"paper_id": "10.1234/s1", "corruption_type": "truncate_title", "affected_field": "title"}
+    log = {"scenarios": [{"corruption_type": "truncate_title", "records": [event]}], "events": [event]}
+    _, text = corruption(
+        tmp_path,
+        baseline_answers=[answer("s1")],
+        corrupted_answers=[answer("s1", retrieval_hit=False, hit_rank=None, token_f1=0.0)],
+        corruption_log=log,
+    )
+    linkage = [line for line in text.splitlines() if line.startswith("| `10.1234/s1`")]
+    assert len(linkage) == 1
+
+
 def test_unmatched_corruption_log_is_called_an_association(tmp_path):
     baseline_answers = [answer("s1")]
     corrupted_answers = [answer("s1", retrieval_hit=False, hit_rank=None, token_f1=0.0)]

@@ -6,3 +6,8 @@ src/*.egg-info/
 lab/
 **/__pycache__/
 .pytest_cache/
+
+# Binary Chroma store: rebuilt by run_phase1.py / run_corruption_flow.py from the committed
+# embedding manifests, so it is regenerable and would otherwise churn on every run.
+data/chroma/*
+!data/chroma/.gitkeep

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Iterable
+import json
 
 from core.utils import now_utc, redact_secrets, write_text
 
@@ -394,15 +395,23 @@ def _route_counts(answers: Any) -> dict[str, int]:
 def _collect_corruption_records(payload: Any) -> list[dict[str, Any]]:
     """Walk an unknown-shaped corruption log and pull out anything carrying a paper_id.
 
-    The log is produced by another role and its schema is not fixed here, so the walk stays
-    structural rather than assuming particular keys.
+    The log schema is not fixed here, so the walk stays structural rather than assuming
+    particular keys. A log that both groups its events and lists them flat would otherwise
+    yield each event twice, so identical records are collapsed.
     """
     found: list[dict[str, Any]] = []
+    seen: set[str] = set()
 
     def visit(node: Any) -> None:
         if isinstance(node, dict):
             if any(key in node for key in ("paper_id", "record_id", "id")):
-                found.append(node)
+                try:
+                    key = json.dumps(node, sort_keys=True, default=str)
+                except (TypeError, ValueError):
+                    key = repr(sorted(node.items(), key=lambda item: str(item[0])))
+                if key not in seen:
+                    seen.add(key)
+                    found.append(node)
             for value in node.values():
                 visit(value)
         elif isinstance(node, list):

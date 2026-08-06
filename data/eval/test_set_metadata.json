@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-08-06T05:05:07.955290+00:00",
+  "seed": 20251110,
+  "questions_per_type": 3,
+  "source_clean_path": null,
+  "clean_dataset_rows": 24,
+  "documents_with_paper_id": 24,
+  "test_set_path": "D:\\CODE\\AITHUCCHIEN\\LABS\\K3_Day10_Data-Pipeline-Data-Observability\\data\\eval\\test_set.json",
+  "total_questions": 12,
+  "question_type_counts": {
+    "summary": 3,
+    "authors": 3,
+    "date": 3,
+    "categories": 0,
+    "semantic_topic": 3
+  },
+  "fingerprint": "a9eb111d8faaa7ebc6ced787215d72133d8fb1eaf784800c92d5c06296844279",
+  "warnings": [
+    "Only 0/3 categories question(s) could be built from eligible rows."
+  ]
+}
