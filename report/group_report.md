@@ -176,7 +176,11 @@ python script/run_corruption_flow.py
 
 Giải thích cách nhóm tạo `text_for_embedding`, document ID và `age_days`:
 
-[Mô tả tại đây.]
+- Document ID giữ nguyên từ `PaperRecord.paper_id` (DOI) xuyên suốt raw → clean → index → evaluation; cleaning không sinh ID mới.
+- `text_for_embedding` có format cố định: `Title: {title} | Authors: {authors_joined} | Summary: {summary}`.
+- `age_days = max(0, (run_date.date() - published_date).days)`. `run_date` phải timezone-aware hoặc được chuẩn hóa nhất quán trước khi tính.
+- Khi trùng `paper_id`, giữ record hợp lệ xuất hiện đầu tiên để kết quả deterministic; không merge âm thầm các nội dung khác nhau.
+- Contract và sample validation của Vai trò 3 được ghi tại `report/cp0_role3_cleaning_contract.md` và `script/validate_cleaning_sample.py`.
 
 ## 6. Evaluation setup
 
