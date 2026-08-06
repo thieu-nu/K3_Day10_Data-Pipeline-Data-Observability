@@ -145,19 +145,40 @@ python script/run_corruption_flow.py
 
 | Trường        | Kiểu dữ liệu | Bắt buộc?  | Ý nghĩa   | Xử lý khi thiếu/sai |
 | --------------- | --------------- | ------------ | ----------- | ---------------------- |
-| [Tên trường] | [Kiểu]         | [Có/Không] | [Ý nghĩa] | [Cách xử lý]        |
-| [Tên trường] | [Kiểu]         | [Có/Không] | [Ý nghĩa] | [Cách xử lý]        |
+| `paper_id` | `str` | Có | Document ID ổn định, lấy từ DOI | Trim; loại record nếu rỗng; deduplicate theo ID |
+| `title` | `str` | Có | Tiêu đề paper | Loại HTML/XML và chuẩn hóa khoảng trắng; loại record nếu rỗng |
+| `summary` | `str` | Có | Abstract/description phục vụ retrieval | Loại HTML/XML và chuẩn hóa khoảng trắng; loại nếu dưới 100 ký tự |
+| `authors` | `list[str]` | Không | Danh sách tác giả từ raw record | Bỏ phần tử rỗng, chuẩn hóa khoảng trắng; thiếu thì dùng danh sách rỗng |
+| `authors_joined` | `str` | Không | Tác giả đã flatten cho CSV/index | Nối `authors` bằng dấu phẩy; thiếu thì chuỗi rỗng |
+| `categories` | `list[str]` | Không | Danh sách subject/category | Bỏ phần tử rỗng và trùng; thiếu thì dùng danh sách rỗng |
+| `categories_joined` | `str` | Không | Category đã flatten cho CSV/index | Nối `categories` bằng dấu phẩy; thiếu thì chuỗi rỗng |
+| `primary_category` | `str` | Không | Category đại diện | Dùng category đầu tiên nếu raw value rỗng |
+| `published` | `str` (`YYYY-MM-DD`) | Có | Ngày xuất bản dùng tính freshness | Parse về ngày chuẩn; loại record nếu không parse được |
+| `updated` | `str` (`YYYY-MM-DD`) | Không | Ngày cập nhật gần nhất | Parse về ngày chuẩn; nếu sai/thiếu thì để rỗng |
+| `age_days` | `int` | Có | Số ngày từ `published` đến `run_date` | Tính bằng date arithmetic; chặn tối thiểu ở 0 cho ngày tương lai |
+| `summary_chars` | `int` | Có | Độ dài summary sau cleaning | Tính lại từ summary đã chuẩn hóa |
+| `text_for_embedding` | `str` | Có | Nội dung đưa vào MiniLM/ChromaDB | Dựng lại từ title, authors và summary; không chấp nhận rỗng |
+| `abs_url` | `str` | Không | URL landing/abstract | Trim; thiếu thì chuỗi rỗng |
+| `pdf_url` | `str` | Không | URL PDF | Trim; thiếu thì chuỗi rỗng |
 
 ### Quy tắc cleaning
 
 | Quy tắc                                 | Quality dimension liên quan | Số record bị tác động | Cách xác minh      |
 | ---------------------------------------- | ---------------------------- | -------------------------: | -------------------- |
-| [Ví dụ: loại record không có title] | [Completeness/Validity/...]  |              [Số lượng] | [Artifact/kiểm tra] |
-| [Quy tắc thực tế]                     | [Dimension]                  |              [Số lượng] | [Artifact/kiểm tra] |
+| Loại record thiếu `paper_id` hoặc `title` | Completeness/Validity | Chưa chạy CP1 | Kiểm tra null/rỗng trên clean dataframe |
+| Loại record có summary sau clean dưới 100 ký tự | Completeness/Validity | Chưa chạy CP1 | Assert `summary_chars >= 100` |
+| Loại markup HTML/XML và chuẩn hóa whitespace | Consistency | Chưa chạy CP1 | Tìm pattern tag trong `title`/`summary` |
+| Chuẩn hóa `published` về `YYYY-MM-DD` | Validity/Consistency | Chưa chạy CP1 | Parse toàn bộ cột bằng pandas/date parser |
+| Deduplicate theo `paper_id`, giữ record xuất hiện đầu tiên | Uniqueness | Chưa chạy CP1 | Assert `paper_id.is_unique` |
+| Flatten authors/categories và dựng helper fields | Consistency | Chưa chạy CP1 | Đối chiếu sample raw → clean bằng script CP1 |
 
 Giải thích cách nhóm tạo `text_for_embedding`, document ID và `age_days`:
 
-[Mô tả tại đây.]
+- Document ID giữ nguyên từ `PaperRecord.paper_id` (DOI) xuyên suốt raw → clean → index → evaluation; cleaning không sinh ID mới.
+- `text_for_embedding` có format cố định: `Title: {title} | Authors: {authors_joined} | Summary: {summary}`.
+- `age_days = max(0, (run_date.date() - published_date).days)`. `run_date` phải timezone-aware hoặc được chuẩn hóa nhất quán trước khi tính.
+- Khi trùng `paper_id`, giữ record hợp lệ xuất hiện đầu tiên để kết quả deterministic; không merge âm thầm các nội dung khác nhau.
+- Contract và sample validation của Vai trò 3 được ghi tại `report/cp0_role3_cleaning_contract.md` và `script/validate_cleaning_sample.py`.
 
 ## 6. Evaluation setup
 
