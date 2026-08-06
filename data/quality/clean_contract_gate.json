@@ -1,0 +1,117 @@
+{
+  "contract_version": "clean-v1",
+  "status": "STOP",
+  "checked_at": "2026-08-06T03:39:15.852449+00:00",
+  "artifacts": {
+    "raw_response": {
+      "path": "data/raw/crossref_response.json",
+      "exists": false,
+      "is_file": false,
+      "size_bytes": null,
+      "sha256": null
+    },
+    "raw_records": {
+      "path": "data/raw/crossref_records.json",
+      "exists": false,
+      "is_file": false,
+      "size_bytes": null,
+      "sha256": null
+    },
+    "clean_csv": {
+      "path": "data/clean/papers_clean.csv",
+      "exists": false,
+      "is_file": false,
+      "size_bytes": null,
+      "sha256": null
+    },
+    "clean_json": {
+      "path": "data/clean/papers_clean.json",
+      "exists": false,
+      "is_file": false,
+      "size_bytes": null,
+      "sha256": null
+    },
+    "cleaning_summary": {
+      "path": "data/clean/cleaning_summary.json",
+      "exists": false,
+      "is_file": false,
+      "size_bytes": null,
+      "sha256": null
+    }
+  },
+  "counts": {
+    "raw_count": null,
+    "clean_csv_count": null,
+    "clean_json_count": null,
+    "filtered_count": null,
+    "deduplicated_count": null
+  },
+  "schema": {
+    "required_raw_fields": [
+      "paper_id",
+      "title",
+      "summary",
+      "authors",
+      "categories",
+      "primary_category",
+      "published",
+      "updated",
+      "abs_url",
+      "pdf_url",
+      "comment"
+    ],
+    "required_clean_columns": [
+      "paper_id",
+      "title",
+      "summary",
+      "published",
+      "age_days",
+      "authors_joined",
+      "categories_joined",
+      "summary_chars",
+      "text_for_embedding",
+      "abs_url",
+      "pdf_url"
+    ],
+    "clean_csv_columns": [],
+    "clean_json_columns": []
+  },
+  "clean_snapshot_sha256": null,
+  "blockers": [
+    {
+      "code": "RAW_RESPONSE_MISSING",
+      "message": "Required JSON artifact does not exist.",
+      "evidence": {
+        "path": "data/raw/crossref_response.json"
+      }
+    },
+    {
+      "code": "RAW_RECORDS_MISSING",
+      "message": "Required JSON artifact does not exist.",
+      "evidence": {
+        "path": "data/raw/crossref_records.json"
+      }
+    },
+    {
+      "code": "CLEAN_CSV_MISSING",
+      "message": "Required clean CSV artifact does not exist.",
+      "evidence": {
+        "path": "data/clean/papers_clean.csv"
+      }
+    },
+    {
+      "code": "CLEAN_JSON_MISSING",
+      "message": "Required JSON artifact does not exist.",
+      "evidence": {
+        "path": "data/clean/papers_clean.json"
+      }
+    },
+    {
+      "code": "CLEANING_SUMMARY_MISSING",
+      "message": "Required JSON artifact does not exist.",
+      "evidence": {
+        "path": "data/clean/cleaning_summary.json"
+      }
+    }
+  ]
+}
