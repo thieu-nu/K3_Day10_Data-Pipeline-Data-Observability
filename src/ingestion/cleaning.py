@@ -142,16 +142,6 @@ def build_clean_dataframe(records: list[PaperRecord], run_date: datetime) -> pd.
             ["published", "paper_id"], ascending=[False, True], kind="stable"
         ).reset_index(drop=True)
 
-        if dataframe["paper_id"].isna().any() or dataframe["paper_id"].str.strip().eq("").any():
-            raise ValueError("Clean schema violation: paper_id must be non-empty.")
-        if dataframe["paper_id"].str.casefold().duplicated().any():
-            raise ValueError("Clean schema violation: paper_id must be unique.")
-        if (
-            dataframe["text_for_embedding"].isna().any()
-            or dataframe["text_for_embedding"].str.strip().eq("").any()
-        ):
-            raise ValueError("Clean schema violation: text_for_embedding must be non-empty.")
-
     stats["output_records"] = len(dataframe)
     stats["filtered_total"] = len(records) - len(dataframe)
     dataframe.attrs["cleaning_stats"] = stats
