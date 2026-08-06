@@ -117,13 +117,14 @@ class LocalEmbeddingIndex:
             name=collection_name,
             configuration={"hnsw": {"space": "cosine"}},
         )
-        embeddings = embedding_model.embed_documents([document["content"] for document in documents])
-        collection.add(
-            ids=[document["record_id"] for document in documents],
-            embeddings=embeddings,
-            documents=[document["content"] for document in documents],
-            metadatas=[document["metadata"] for document in documents],
-        )
+        if documents:
+            embeddings = embedding_model.embed_documents([document["content"] for document in documents])
+            collection.add(
+                ids=[document["record_id"] for document in documents],
+                embeddings=embeddings,
+                documents=[document["content"] for document in documents],
+                metadatas=[document["metadata"] for document in documents],
+            )
 
         manifest_path = embeddings_output_path or settings.paths.embeddings_json
         write_json(

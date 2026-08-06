@@ -1,7 +1,7 @@
 {
   "contract_version": "clean-v1",
   "status": "GO",
-  "checked_at": "2026-08-06T04:37:44.849162+00:00",
+  "checked_at": "2026-08-06T05:14:32.098653+00:00",
   "artifacts": {
     "raw_response": {
       "path": "data/raw/crossref_response.json",
@@ -35,8 +35,8 @@
       "path": "data/clean/cleaning_summary.json",
       "exists": true,
       "is_file": true,
-      "size_bytes": 354,
-      "sha256": "b9a963ec710847254ad977f858a7492371c0a0ec721a92a10b2475bb5311bea9"
+      "size_bytes": 207,
+      "sha256": "02391c6fb0e4d91268da93507e7581042b82343a71368741d4b19940252d3231"
     }
   },
   "counts": {

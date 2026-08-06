@@ -2,15 +2,8 @@
   "filtered_count": 0,
   "deduplicated_count": 0,
   "reason_counts": {
-    "filtered": {
-      "missing_paper_id": 0,
-      "missing_title": 0,
-      "short_summary": 0,
-      "invalid_published": 0
-    },
-    "deduplicated": {
-      "paper_id": 0
-    }
+    "filtered": {},
+    "deduplicated": {}
   },
   "contract_version": "clean-v1",
   "raw_count": 24,
