@@ -110,6 +110,81 @@ def fmt_delta(new: Any, old: Any, digits: int = 4) -> str | None:
     return f"{float(new) - float(old):+.{digits}f}"
 
 
+def artifact_detail(path: Path) -> str:
+    """Mo ta mot artifact bang chinh noi dung tren dia, khong doan."""
+    path = Path(path)
+    if not path.is_file():
+        return "chưa có"
+    size_kb = path.stat().st_size / 1024
+    try:
+        if path.suffix == ".json":
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(payload, list):
+                return f"{len(payload)} bản ghi · {size_kb:,.0f} KB"
+            if isinstance(payload, dict):
+                for key in ("row_count", "dataset_rows", "samples", "questions", "output_rows"):
+                    if key in payload:
+                        return f"{key}={payload[key]} · {size_kb:,.0f} KB"
+                return f"{len(payload)} trường · {size_kb:,.0f} KB"
+        if path.suffix == ".csv":
+            rows = sum(1 for _ in path.open(encoding="utf-8")) - 1
+            return f"{rows} dòng · {size_kb:,.0f} KB"
+    except Exception as exc:
+        return f"không đọc được: {type(exc).__name__}"
+    return f"{size_kb:,.0f} KB"
+
+
+def pipeline_stages(settings: Settings) -> pd.DataFrame:
+    """Trang thai tung chang cua pipeline, doc tu file that tren dia."""
+    p = settings.paths
+    stages = [
+        ("1. Raw ingest (Crossref)", p.raw_records_json),
+        ("2. Cleaning", p.clean_csv),
+        ("3. Clean contract gate", p.clean_gate_report),
+        ("4. Embedding + Chroma index", p.embeddings_json),
+        ("5. Evaluation set (đã khóa)", p.eval_testset),
+        ("6. Evaluation baseline", p.baseline_metrics),
+        ("7. Data quality baseline", quality_report_path(settings, "baseline_quality")),
+        ("8. Freshness baseline", p.freshness_report),
+        ("9. Báo cáo baseline", p.baseline_report),
+        ("10. Corruption log", p.corruption_log),
+        ("11. Evaluation corrupted", p.corrupted_metrics),
+        ("12. Evaluation repaired", p.repaired_metrics),
+        ("13. Báo cáo so sánh", p.comparison_report),
+        ("14. Agent demo (LLM thật)", p.demo_answers),
+    ]
+    rows = []
+    for label, path in stages:
+        exists = Path(path).is_file()
+        rows.append(
+            {
+                "": "🟢" if exists else "⚪",
+                "Chặng": label,
+                "Artifact": str(Path(path).relative_to(settings.paths.project_dir)),
+                "Nội dung": artifact_detail(path),
+                "Cập nhật": (
+                    pd.Timestamp(Path(path).stat().st_mtime, unit="s", tz="UTC")
+                    .tz_convert(None)
+                    .strftime("%Y-%m-%d %H:%M")
+                    if exists
+                    else "—"
+                ),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def judge_scale_max(metrics: dict[str, Any] | None, default: float = 5.0) -> float:
+    """Doc thang diem judge tu artifact thay vi gia dinh cung la 1-5."""
+    scale = (metrics or {}).get("mean_judge_score_scale")
+    if isinstance(scale, str) and "-" in scale:
+        try:
+            return float(scale.rsplit("-", 1)[1])
+        except ValueError:
+            pass
+    return default
+
+
 def kv_table(pairs: list[tuple[str, Any]], key_label: str = "Trường", value_label: str = "Giá trị"):
     """Bang key/value voi cot gia tri ep ve chuoi.
 
@@ -141,12 +216,14 @@ def missing(what: str, how: str) -> None:
 
 
 def page_overview(settings: Settings, metrics: dict[str, Any]) -> None:
-    st.subheader("Luồng pipeline")
-    st.code(
-        "Crossref API -> raw snapshot -> cleaned dataset -> MiniLM + Chroma index\n"
-        "     -> evaluation trên bộ câu hỏi đã khóa -> quality + freshness report\n"
-        "     -> corruption -> re-index và re-evaluate -> repair từ raw -> comparison",
-        language="text",
+    st.subheader("Trạng thái pipeline")
+    stages = pipeline_stages(settings)
+    done = int((stages[""] == "🟢").sum())
+    st.progress(done / len(stages), text=f"{done}/{len(stages)} chặng đã sinh artifact")
+    st.dataframe(stages, hide_index=True, width="stretch")
+    st.caption(
+        "Mỗi dòng đọc trực tiếp file trên đĩa: có tồn tại hay không, số bản ghi bên trong và "
+        "thời điểm ghi. Không phải sơ đồ mô tả."
     )
 
     baseline = metrics.get("baseline")
@@ -286,7 +363,8 @@ def page_comparison(metrics: dict[str, Any], quality: dict[str, Any], freshness:
 
     chart_rows = []
     for key in numeric:
-        scale = 5.0 if key == "mean_judge_score" else 1.0
+        # thang judge doc tu artifact, khong gia dinh cung la 1-5
+        scale = judge_scale_max(baseline) if key == "mean_judge_score" else 1.0
         for state in STATES:
             payload = metrics.get(state)
             value = payload.get(key) if payload else None
@@ -294,7 +372,11 @@ def page_comparison(metrics: dict[str, Any], quality: dict[str, Any], freshness:
                 chart_rows.append({"metric": key, "state": state, "value": value / scale})
     if chart_rows:
         st.subheader("So sánh đã chuẩn hóa")
-        st.caption("Mọi metric đưa về thang 0–1 để dùng chung trục; mean_judge_score chia cho 5.")
+        st.caption(
+            "Mọi metric đưa về thang 0–1 để dùng chung trục; mean_judge_score chia cho "
+            f"{judge_scale_max(baseline):.0f} (thang `{baseline.get('mean_judge_score_scale')}` "
+            "đọc từ artifact)."
+        )
         pivot = pd.DataFrame(chart_rows).pivot(index="metric", columns="state", values="value")
         # stack=False: ba trạng thái là các lựa chọn thay thế nhau, không phải thành phần của
         # một tổng. Bar chart xếp chồng sẽ khiến người xem tưởng chúng cộng lại có ý nghĩa.
@@ -541,15 +623,28 @@ def page_ask(settings: Settings) -> None:
         return
 
     state = st.radio("Index", available, horizontal=True)
-    question = st.text_input(
-        "Câu hỏi",
-        placeholder="Which paper discusses hierarchical retrieval for tool selection?",
+
+    # Goi y lay tu chinh test set da khoa, khong phai chuoi viet cung
+    suggestions = [""]
+    test_set = load_json(settings.paths.eval_testset)
+    if isinstance(test_set, list):
+        suggestions += [item["question"] for item in test_set]
+    picked = st.selectbox(
+        "Chọn một câu từ evaluation set (hoặc để trống rồi tự gõ)",
+        suggestions,
+        format_func=lambda s: "— tự gõ —" if not s else s[:110],
+    )
+    question = st.text_input("Câu hỏi", value=picked)
+    use_agent = st.checkbox(
+        "Dùng LLM agent thật (`retrieval.agent`) thay vì đường retrieval của evaluation",
+        value=False,
+        help="Agent tự quyết định gọi tool semantic_search_papers hay lookup_paper. Tốn quota LLM.",
     )
     st.caption(
-        "Cách đặt câu hỏi có ảnh hưởng: `retrieval.qa` định tuyến theo từ khóa. "
+        "Đường retrieval của evaluation (`retrieval.qa`) định tuyến theo từ khóa: "
         "*Who authored…* / *When was… published* / *What categories…* đọc thẳng metadata; "
         "còn lại trả về câu đầu tiên trong summary của paper đứng đầu. "
-        "Title đặt trong 'nháy đơn' sẽ kích hoạt exact lookup."
+        "Title trong 'nháy đơn' kích hoạt exact lookup. Agent thật thì không theo luật này."
     )
     if not question:
         return
@@ -565,24 +660,166 @@ def page_ask(settings: Settings) -> None:
         st.error(f"Retrieval thất bại: {type(exc).__name__}: {exc}")
         return
 
-    st.markdown("### Câu trả lời")
-    st.success(result.answer or "_(rỗng)_")
-    st.markdown("### Document được retrieve")
-    st.dataframe(
-        pd.DataFrame(
-            {
-                "rank": range(1, len(result.retrieved_doc_ids) + 1),
-                "paper_id": result.retrieved_doc_ids,
-                "title": result.retrieved_titles,
-            }
-        ),
-        hide_index=True,
-        width="stretch",
-    )
+    left, right = st.columns(2) if use_agent else (st.container(), None)
+    with left:
+        st.markdown("### `retrieval.qa` (đường evaluation chấm điểm)")
+        st.success(result.answer or "_(rỗng)_")
+        st.dataframe(
+            pd.DataFrame(
+                {
+                    "rank": range(1, len(result.retrieved_doc_ids) + 1),
+                    "paper_id": result.retrieved_doc_ids,
+                    "title": result.retrieved_titles,
+                }
+            ),
+            hide_index=True,
+            width="stretch",
+        )
+
+    if use_agent and right is not None:
+        with right:
+            st.markdown("### `retrieval.agent` (LLM agent có tool)")
+            try:
+                from retrieval.agent import build_agent, run_agent_question
+
+                with st.spinner("Agent đang suy luận và gọi tool…"):
+                    agent = build_agent(settings=settings, index=index)
+                    answer = run_agent_question(agent, question)
+                st.success(answer or "_(rỗng)_")
+            except Exception as exc:
+                from evaluation.metrics import _sanitize_error
+
+                st.error(
+                    f"Agent thất bại: {type(exc).__name__}\n\n"
+                    f"`{_sanitize_error(exc, settings)}`"
+                )
+                st.caption(
+                    "Lỗi được hiển thị nguyên trạng đã che credential. Không có câu trả lời "
+                    "thay thế nào được sinh ra."
+                )
+
     with st.expander("Xem context đã retrieve"):
         for doc_id, context in zip(result.retrieved_doc_ids, result.retrieved_contexts):
             st.markdown(f"**`{doc_id}`**")
             st.caption(context[:700] + ("…" if len(context) > 700 else ""))
+
+
+def page_agent(settings: Settings) -> None:
+    st.caption(
+        "Chạy LLM agent thật (`retrieval.agent`) trên chính các câu hỏi của evaluation set đã "
+        "khóa, rồi chấm bằng đúng token F1 và đúng ground truth mà evaluation dùng. Nhờ vậy so "
+        "sánh được agent với đường `retrieval.qa` theo luật từ khóa."
+    )
+    payload = load_json(settings.paths.demo_answers)
+
+    paths = state_paths(settings)
+    available = [s for s in STATES if Path(paths[s]["embeddings"]).is_file()]
+    if not available:
+        missing("index nào", "python script/run_phase1.py")
+        return
+
+    cols = st.columns([1, 1, 2])
+    state = cols[0].selectbox("Index", available)
+    count = cols[1].number_input("Số câu hỏi", min_value=1, max_value=12, value=4, step=1)
+    cols[2].markdown("&nbsp;", unsafe_allow_html=True)
+    if cols[2].button("▶ Chạy agent demo", type="primary"):
+        from pipelines.agent_demo import run_agent_demo
+
+        with st.spinner(f"Agent đang trả lời {count} câu trên index {state}…"):
+            try:
+                payload = run_agent_demo(settings, state=state, count=int(count))
+                st.cache_data.clear()
+            except Exception as exc:
+                st.error(f"Không chạy được agent demo: {type(exc).__name__}: {exc}")
+                return
+
+    if payload is None:
+        st.info(
+            "Chưa có kết quả agent demo. Bấm nút ở trên, hoặc chạy "
+            "`python script/run_agent_demo.py`."
+        )
+        return
+
+    cols = st.columns(5)
+    cols[0].metric("Số câu", payload.get("questions"))
+    cols[1].metric("Trả lời được", payload.get("answered"))
+    cols[2].metric("Thất bại", payload.get("failed"))
+    cols[3].metric("Agent mean token F1", fmt(payload.get("mean_agent_token_f1")))
+    cols[4].metric("retrieval.qa mean token F1", fmt(payload.get("mean_qa_token_f1")))
+
+    if payload.get("mean_agent_token_f1") is None:
+        st.warning(
+            "Không có lời gọi agent nào thành công, nên `mean_agent_token_f1` là N/A. "
+            "Không có điểm thay thế nào được sinh ra."
+        )
+    st.caption(
+        f"State `{payload.get('state')}` · provider `{payload.get('provider')}` · model "
+        f"`{payload.get('model')}` · chạy lúc {payload.get('completed_at')}"
+    )
+
+    for item in payload.get("items", []):
+        label = f"{item.get('question_type')} · {item.get('id')}"
+        with st.expander(f"{'✅' if item.get('status') == 'answered' else '❌'} {label}"):
+            st.markdown(f"**Câu hỏi:** {item.get('question')}")
+            st.info(f"**Ground truth:** {item.get('ground_truth')}")
+            left, right = st.columns(2)
+            with left:
+                st.markdown("**LLM agent**")
+                if item.get("status") == "answered":
+                    st.success(item.get("agent_answer") or "_(rỗng)_")
+                    st.metric("token_f1", fmt(item.get("agent_token_f1")))
+                    st.caption(
+                        f"Tool đã gọi: {', '.join(item.get('tool_calls') or []) or 'không gọi tool nào'}"
+                        f" · {item.get('message_count')} message · {item.get('duration_ms')} ms"
+                    )
+                else:
+                    st.error(item.get("error"))
+            with right:
+                st.markdown("**`retrieval.qa`**")
+                st.write(item.get("qa_answer") or "_(không có)_")
+                st.metric("token_f1", fmt(item.get("qa_token_f1")))
+
+
+def page_run(settings: Settings) -> None:
+    import subprocess
+
+    st.caption(
+        "Chạy chính các entrypoint trong `script/`. Toàn bộ artifact trong `data/` sẽ được "
+        "sinh lại từ dữ liệu thật; giao diện không tự bịa kết quả nào."
+    )
+    project = settings.paths.project_dir
+    jobs = {
+        "Baseline (run_phase1.py)": "script/run_phase1.py",
+        "Corruption + repair (run_corruption_flow.py)": "script/run_corruption_flow.py",
+        "Agent demo (run_agent_demo.py)": "script/run_agent_demo.py",
+    }
+    choice = st.radio("Chọn pipeline", list(jobs), index=0)
+    st.code(f"{Path(sys.executable).name} {jobs[choice]}", language="bash")
+    st.warning(
+        "Baseline và corruption flow gọi LLM judge cho từng câu hỏi. Trên free tier của "
+        "OpenRouter việc này rất dễ chạm hạn mức ngày; những lần gọi thất bại sẽ được ghi là "
+        "failure chứ không được cho điểm."
+    )
+
+    if st.button(f"▶ Chạy {choice}", type="primary"):
+        placeholder = st.empty()
+        with st.spinner("Đang chạy… có thể mất vài phút"):
+            completed = subprocess.run(
+                [sys.executable, jobs[choice]],
+                cwd=str(project),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+        if completed.returncode == 0:
+            placeholder.success(f"Hoàn tất (exit code {completed.returncode})")
+        else:
+            placeholder.error(f"Thất bại (exit code {completed.returncode})")
+        output = (completed.stdout or "") + (completed.stderr or "")
+        st.text_area("Output", output[-8000:], height=320)
+        st.cache_data.clear()
+        st.caption("Artifact đã được nạp lại; chuyển sang tab khác để xem số liệu mới.")
 
 
 def page_reports(settings: Settings) -> None:
@@ -654,7 +891,9 @@ def main() -> None:
             "Quality & freshness",
             "Câu hỏi",
             "Corruption log",
+            "LLM agent",
             "Hỏi thử",
+            "Chạy pipeline",
             "Báo cáo",
         ]
     )
@@ -669,8 +908,12 @@ def main() -> None:
     with tabs[4]:
         page_corruption_log(settings)
     with tabs[5]:
-        page_ask(settings)
+        page_agent(settings)
     with tabs[6]:
+        page_ask(settings)
+    with tabs[7]:
+        page_run(settings)
+    with tabs[8]:
         page_reports(settings)
 
 
