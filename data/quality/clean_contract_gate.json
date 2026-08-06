@@ -1,50 +1,50 @@
 {
   "contract_version": "clean-v1",
-  "status": "STOP",
-  "checked_at": "2026-08-06T03:39:15.852449+00:00",
+  "status": "GO",
+  "checked_at": "2026-08-06T05:14:32.098653+00:00",
   "artifacts": {
     "raw_response": {
       "path": "data/raw/crossref_response.json",
-      "exists": false,
-      "is_file": false,
-      "size_bytes": null,
-      "sha256": null
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 238041,
+      "sha256": "372d28f5a0872b0f121da986afb8c5d87afdb64fe81a922e5cd7d8b55e50ce48"
     },
     "raw_records": {
       "path": "data/raw/crossref_records.json",
-      "exists": false,
-      "is_file": false,
-      "size_bytes": null,
-      "sha256": null
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 57019,
+      "sha256": "bd273f99d6b9ce477b82983bdfea0e8d820e7a9e86b46b05f6d23b7e2a7bb366"
     },
     "clean_csv": {
       "path": "data/clean/papers_clean.csv",
-      "exists": false,
-      "is_file": false,
-      "size_bytes": null,
-      "sha256": null
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 98287,
+      "sha256": "89dae7ddc9e73c586fa56be4072fbb7e2f9f49491b186c7c098fc43fa85060ca"
     },
     "clean_json": {
       "path": "data/clean/papers_clean.json",
-      "exists": false,
-      "is_file": false,
-      "size_bytes": null,
-      "sha256": null
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 111974,
+      "sha256": "a805ea3cce587843cecbe78fafd3727c21c018102c095050f52979c1d5109d0a"
     },
     "cleaning_summary": {
       "path": "data/clean/cleaning_summary.json",
-      "exists": false,
-      "is_file": false,
-      "size_bytes": null,
-      "sha256": null
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 207,
+      "sha256": "02391c6fb0e4d91268da93507e7581042b82343a71368741d4b19940252d3231"
     }
   },
   "counts": {
-    "raw_count": null,
-    "clean_csv_count": null,
-    "clean_json_count": null,
-    "filtered_count": null,
-    "deduplicated_count": null
+    "raw_count": 24,
+    "clean_csv_count": 24,
+    "clean_json_count": 24,
+    "filtered_count": 0,
+    "deduplicated_count": 0
   },
   "schema": {
     "required_raw_fields": [
@@ -73,45 +73,39 @@
       "abs_url",
       "pdf_url"
     ],
-    "clean_csv_columns": [],
-    "clean_json_columns": []
+    "clean_csv_columns": [
+      "paper_id",
+      "title",
+      "summary",
+      "authors_joined",
+      "categories_joined",
+      "primary_category",
+      "published",
+      "updated",
+      "age_days",
+      "summary_chars",
+      "text_for_embedding",
+      "abs_url",
+      "pdf_url",
+      "comment"
+    ],
+    "clean_json_columns": [
+      "paper_id",
+      "title",
+      "summary",
+      "authors_joined",
+      "categories_joined",
+      "primary_category",
+      "published",
+      "updated",
+      "age_days",
+      "summary_chars",
+      "text_for_embedding",
+      "abs_url",
+      "pdf_url",
+      "comment"
+    ]
   },
-  "clean_snapshot_sha256": null,
-  "blockers": [
-    {
-      "code": "RAW_RESPONSE_MISSING",
-      "message": "Required JSON artifact does not exist.",
-      "evidence": {
-        "path": "data/raw/crossref_response.json"
-      }
-    },
-    {
-      "code": "RAW_RECORDS_MISSING",
-      "message": "Required JSON artifact does not exist.",
-      "evidence": {
-        "path": "data/raw/crossref_records.json"
-      }
-    },
-    {
-      "code": "CLEAN_CSV_MISSING",
-      "message": "Required clean CSV artifact does not exist.",
-      "evidence": {
-        "path": "data/clean/papers_clean.csv"
-      }
-    },
-    {
-      "code": "CLEAN_JSON_MISSING",
-      "message": "Required JSON artifact does not exist.",
-      "evidence": {
-        "path": "data/clean/papers_clean.json"
-      }
-    },
-    {
-      "code": "CLEANING_SUMMARY_MISSING",
-      "message": "Required JSON artifact does not exist.",
-      "evidence": {
-        "path": "data/clean/cleaning_summary.json"
-      }
-    }
-  ]
+  "clean_snapshot_sha256": "a805ea3cce587843cecbe78fafd3727c21c018102c095050f52979c1d5109d0a",
+  "blockers": []
 }

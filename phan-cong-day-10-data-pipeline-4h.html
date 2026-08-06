@@ -1,91 +1,829 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Day 10 — Data Pipeline Checkpoint Timer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
   <style>
-    :root { --bg-dark:#090d16; --bg-card:#131b2e; --bg-card-hover:#1c2742; --bg-inner:#0b1220; --primary:#3b82f6; --primary-glow:rgba(59,130,246,.4); --accent:#10b981; --accent-glow:rgba(16,185,129,.4); --warning:#f59e0b; --danger:#ef4444; --text-main:#f8fafc; --text-muted:#94a3b8; --border-color:#23314d; }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'Inter',system-ui,-apple-system,sans-serif; background-color:var(--bg-dark); color:var(--text-main); height:100vh; display:flex; flex-direction:column; overflow:hidden; line-height:1.45; }
-    button:focus-visible { outline:3px solid #fef08a; outline-offset:2px; }
-    header { background:rgba(19,27,46,.85); backdrop-filter:blur(14px); border-bottom:1px solid var(--border-color); padding:8px 20px; display:flex; align-items:center; justify-content:space-between; gap:15px; z-index:100; }
-    .brand { display:flex; align-items:center; gap:10px; } .brand-icon { font-size:26px; } .brand-title { font-weight:800; font-size:15px; background:linear-gradient(135deg,#60a5fa,#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:.5px; } .brand-sub { font-size:11px; color:var(--text-muted); }
-    .stepper { display:flex; align-items:center; gap:6px; flex:1; max-width:760px; justify-content:center; overflow-x:auto; padding:2px; } .step-btn { background:#111827; border:1px solid var(--border-color); color:var(--text-muted); padding:6px 10px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; transition:all .2s ease; display:flex; align-items:center; gap:5px; white-space:nowrap; } .step-btn:hover { background:var(--bg-card-hover); color:#fff; } .step-btn.active { background:var(--primary); border-color:#60a5fa; color:#fff; box-shadow:0 0 14px var(--primary-glow); } .step-btn.completed { border-color:var(--accent); color:var(--accent); }
-    .team-switch { display:flex; background:#0b1220; padding:3px; border-radius:8px; border:1px solid var(--border-color); } .team-opt { border:0; background:transparent; padding:5px 10px; font-size:11px; font-weight:800; color:var(--text-muted); cursor:pointer; border-radius:6px; transition:all .2s; } .team-opt.active { background:var(--primary); color:#fff; box-shadow:0 2px 8px var(--primary-glow); }
-    main { flex:1; display:grid; grid-template-columns:350px 1fr; gap:14px; padding:14px; height:calc(100vh - 54px); min-height:0; }
-    .timer-panel { background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); min-height:0; } .cp-header { text-align:center; width:100%; } .cp-badge { display:inline-block; padding:4px 14px; border-radius:20px; background:rgba(59,130,246,.15); color:#60a5fa; font-size:11px; font-weight:800; letter-spacing:.5px; border:1px solid rgba(59,130,246,.35); margin-bottom:6px; } .cp-title { font-size:17px; font-weight:800; color:#fff; line-height:1.3; }
-    .clock-box { text-align:center; background:var(--bg-inner); border:1px solid var(--border-color); border-radius:12px; padding:14px; } .clock-display { font-family:'JetBrains Mono',monospace; font-size:54px; font-weight:700; color:#fff; letter-spacing:-1px; text-shadow:0 0 20px rgba(255,255,255,.15); } .clock-display.warning { color:var(--warning); animation:pulse 1s infinite; } .clock-display.danger { color:var(--danger); animation:pulse .5s infinite; } @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.5} }
-    .edit-time-box { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; font-size:11px; color:var(--text-muted); } .edit-time-box input { width:55px; background:#1e293b; border:1px solid var(--border-color); color:#fff; padding:3px 6px; border-radius:6px; text-align:center; font-weight:700; font-size:12px; }
-    .timer-controls { display:flex; gap:8px; width:100%; } .btn { flex:1; padding:10px; border-radius:8px; border:none; font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all .2s ease; } .btn-primary { background:var(--primary); color:#fff; box-shadow:0 4px 14px var(--primary-glow); } .btn-primary:hover{background:#2563eb}.btn-secondary{background:#23314d;color:var(--text-main)}.btn-secondary:hover{background:#334155}
-    .nav-controls { display:flex; justify-content:space-between; gap:8px; } .btn-nav { flex:1; background:transparent; border:1px solid var(--border-color); color:var(--text-muted); padding:7px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; } .btn-nav:hover { color:#fff; border-color:#64748b; }
-    .pass-card { background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.3); border-radius:10px; padding:10px 12px; font-size:11px; color:#a7f3d0; } .pass-title { font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--accent); margin-bottom:4px; }
-    .cmd-card { background:var(--bg-inner); border:1px solid var(--border-color); border-radius:10px; padding:10px; } .cmd-title { font-size:10px; font-weight:800; text-transform:uppercase; color:#38bdf8; margin-bottom:5px; } .cmd-box { font-family:'JetBrains Mono',monospace; font-size:10px; color:#7dd3fc; background:#060a12; padding:6px 8px; border-radius:6px; word-break:break-all; border:1px solid #1e293b; }
-    .guide-panel { background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:12px; height:100%; overflow-y:auto; } .guide-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:8px; } .guide-title { font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px; } .guide-sub { font-size:11px; color:var(--text-muted); font-weight:normal; }
-    .roles-grid { display:grid; gap:12px; flex:1; } .grid-3 { grid-template-columns:repeat(3,1fr); }.grid-4{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}.grid-5,.grid-6{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr)}
-    .role-card { background:var(--bg-inner); border:1px solid var(--border-color); border-radius:12px; padding:12px; display:flex; flex-direction:column; justify-content:space-between; gap:8px; transition:all .2s ease; box-shadow:0 4px 12px rgba(0,0,0,.2); }.role-card:hover{border-color:#3b82f6;box-shadow:0 6px 18px rgba(59,130,246,.15)}.role-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px}.role-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.3px}.badge-r1{background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}.badge-r2{background:rgba(59,130,246,.25);color:#93c5fd;border:1px solid rgba(59,130,246,.4)}.badge-r3{background:rgba(168,85,247,.25);color:#e9d5ff;border:1px solid rgba(168,85,247,.4)}.badge-r4{background:rgba(16,185,129,.25);color:#6ee7b7;border:1px solid rgba(16,185,129,.4)}.badge-r5{background:rgba(245,158,11,.25);color:#fde68a;border:1px solid rgba(245,158,11,.4)}.badge-r6{background:rgba(236,72,153,.25);color:#fbcfe8;border:1px solid rgba(236,72,153,.4)}.role-name{font-weight:800;font-size:12px;color:#fff}.role-section-label{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-top:2px}.role-goal{font-size:11px;font-weight:700;color:#e2e8f0;background:rgba(255,255,255,.03);padding:4px 8px;border-radius:6px;border-left:3px solid var(--primary)}.steps-list{list-style:none;display:flex;flex-direction:column;gap:3px}.steps-list li{font-size:11px;color:#cbd5e1;display:flex;align-items:flex-start;gap:5px}.step-num{font-weight:700;color:#60a5fa;font-size:10px;min-width:14px}.file-loc{background:#070b14;border:1px dashed #334155;border-radius:6px;padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#38bdf8;display:flex;align-items:center;justify-content:space-between;gap:6px}.file-loc-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-loc-tag{font-size:9px;background:#1e293b;color:#94a3b8;padding:2px 5px;border-radius:4px;font-family:'Inter',sans-serif;font-weight:700}.gotcha-box{font-size:10px;color:#fde68a;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);padding:4px 8px;border-radius:6px}
-    .shared-rules{background:rgba(59,130,246,.08);border:1px solid rgba(96,165,250,.3);border-radius:10px;padding:9px 11px;font-size:11px;color:#cbd5e1}.shared-rules strong{color:#93c5fd}.shared-rules ul{margin:5px 0 0 16px;display:grid;gap:3px}.checkpoint-note{font-size:11px;color:#fde68a;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.25);padding:7px 10px;border-radius:8px}.shortcuts{font-size:11px;color:var(--text-muted);display:flex;gap:16px;justify-content:center;border-top:1px solid var(--border-color);padding-top:8px}.time-note{font-size:10px;color:#fcd34d;text-align:center}.session-bar{font-size:10px;color:#cbd5e1;text-align:center;padding:6px;border:1px solid var(--border-color);border-radius:8px;background:#101827}.session-bar b{color:#6ee7b7}kbd{background:#1e293b;border:1px solid #334155;padding:2px 6px;border-radius:4px;color:#fff;font-size:10px;font-family:'JetBrains Mono',monospace}
-    @media(max-width:900px){body{height:auto;overflow:auto}header{flex-wrap:wrap}.stepper{order:3;max-width:none;width:100%;justify-content:flex-start}main{height:auto;grid-template-columns:1fr}.guide-panel{min-height:720px}.grid-3,.grid-5,.grid-6{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){header{padding:10px}.team-opt{padding:5px 7px}.grid-3,.grid-4,.grid-5,.grid-6{grid-template-columns:1fr}.guide-header{align-items:flex-start;gap:5px;flex-direction:column}.shortcuts{flex-wrap:wrap;gap:8px;justify-content:flex-start}.clock-display{font-size:48px}}
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: #131b2e;
+      --bg-card-hover: #1c2742;
+      --bg-inner: #0b1220;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, .4);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, .4);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #23314d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      line-height: 1.45;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #fef08a;
+      outline-offset: 2px;
+    }
+
+    header {
+      background: rgba(19, 27, 46, .85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      font-size: 26px;
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 15px;
+      background: linear-gradient(135deg, #60a5fa, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: .5px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 760px;
+      justify-content: center;
+      overflow-x: auto;
+      padding: 2px;
+    }
+
+    .step-btn {
+      background: #111827;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .step-btn:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+    }
+
+    .step-btn.active {
+      background: var(--primary);
+      border-color: #60a5fa;
+      color: #fff;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
+
+    .step-btn.completed {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .team-switch {
+      display: flex;
+      background: #0b1220;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .team-opt {
+      border: 0;
+      background: transparent;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all .2s;
+    }
+
+    .team-opt.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 14px;
+      padding: 14px;
+      height: calc(100vh - 54px);
+      min-height: 0;
+    }
+
+    .timer-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+      min-height: 0;
+    }
+
+    .cp-header {
+      text-align: center;
+      width: 100%;
+    }
+
+    .cp-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      background: rgba(59, 130, 246, .15);
+      color: #60a5fa;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      border: 1px solid rgba(59, 130, 246, .35);
+      margin-bottom: 6px;
+    }
+
+    .cp-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .clock-box {
+      text-align: center;
+      background: var(--bg-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .clock-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 54px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -1px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, .15);
+    }
+
+    .clock-display.warning {
+      color: var(--warning);
+      animation: pulse 1s infinite;
+    }
+
+    .clock-display.danger {
+      color: var(--danger);
+      animation: pulse .5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .5
+      }
+    }
+
+    .edit-time-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .edit-time-box input {
+      width: 55px;
+      background: #1e293b;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all .2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: #2563eb
+    }
+
+    .btn-secondary {
+      background: #23314d;
+      color: var(--text-main)
+    }
+
+    .btn-secondary:hover {
+      background: #334155
+    }
+
+    .nav-controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .btn-nav {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 7px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-nav:hover {
+      color: #fff;
+      border-color: #64748b;
+    }
+
+    .pass-card {
+      background: rgba(16, 185, 129, .08);
+      border: 1px solid rgba(16, 185, 129, .3);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #a7f3d0;
+    }
+
+    .pass-title {
+      font-weight: 800;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .cmd-card {
+      background: var(--bg-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .cmd-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #38bdf8;
+      margin-bottom: 5px;
+    }
+
+    .cmd-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #7dd3fc;
+      background: #060a12;
+      padding: 6px 8px;
+      border-radius: 6px;
+      word-break: break-all;
+      border: 1px solid #1e293b;
+    }
+
+    .guide-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .guide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .guide-title {
+      font-weight: 800;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    .roles-grid {
+      display: grid;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr)
+    }
+
+    .grid-5,
+    .grid-6 {
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr)
+    }
+
+    .role-card {
+      background: var(--bg-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all .2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
+    }
+
+    .role-card:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 6px 18px rgba(59, 130, 246, .15)
+    }
+
+    .role-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      padding-bottom: 6px
+    }
+
+    .role-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: .3px
+    }
+
+    .badge-r1 {
+      background: rgba(239, 68, 68, .25);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, .4)
+    }
+
+    .badge-r2 {
+      background: rgba(59, 130, 246, .25);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, .4)
+    }
+
+    .badge-r3 {
+      background: rgba(168, 85, 247, .25);
+      color: #e9d5ff;
+      border: 1px solid rgba(168, 85, 247, .4)
+    }
+
+    .badge-r4 {
+      background: rgba(16, 185, 129, .25);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, .4)
+    }
+
+    .badge-r5 {
+      background: rgba(245, 158, 11, .25);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, .4)
+    }
+
+    .badge-r6 {
+      background: rgba(236, 72, 153, .25);
+      color: #fbcfe8;
+      border: 1px solid rgba(236, 72, 153, .4)
+    }
+
+    .role-name {
+      font-weight: 800;
+      font-size: 12px;
+      color: #fff
+    }
+
+    .role-section-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 2px
+    }
+
+    .role-goal {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, .03);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border-left: 3px solid var(--primary)
+    }
+
+    .steps-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3px
+    }
+
+    .steps-list li {
+      font-size: 11px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: flex-start;
+      gap: 5px
+    }
+
+    .step-num {
+      font-weight: 700;
+      color: #60a5fa;
+      font-size: 10px;
+      min-width: 14px
+    }
+
+    .file-loc {
+      background: #070b14;
+      border: 1px dashed #334155;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px
+    }
+
+    .file-loc-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .file-loc-tag {
+      font-size: 9px;
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700
+    }
+
+    .gotcha-box {
+      font-size: 10px;
+      color: #fde68a;
+      background: rgba(245, 158, 11, .1);
+      border: 1px solid rgba(245, 158, 11, .25);
+      padding: 4px 8px;
+      border-radius: 6px
+    }
+
+    .shared-rules {
+      background: rgba(59, 130, 246, .08);
+      border: 1px solid rgba(96, 165, 250, .3);
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 11px;
+      color: #cbd5e1
+    }
+
+    .shared-rules strong {
+      color: #93c5fd
+    }
+
+    .shared-rules ul {
+      margin: 5px 0 0 16px;
+      display: grid;
+      gap: 3px
+    }
+
+    .checkpoint-note {
+      font-size: 11px;
+      color: #fde68a;
+      background: rgba(245, 158, 11, .09);
+      border: 1px solid rgba(245, 158, 11, .25);
+      padding: 7px 10px;
+      border-radius: 8px
+    }
+
+    .shortcuts {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      border-top: 1px solid var(--border-color);
+      padding-top: 8px
+    }
+
+    .time-note {
+      font-size: 10px;
+      color: #fcd34d;
+      text-align: center
+    }
+
+    .session-bar {
+      font-size: 10px;
+      color: #cbd5e1;
+      text-align: center;
+      padding: 6px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: #101827
+    }
+
+    .session-bar b {
+      color: #6ee7b7
+    }
+
+    kbd {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    @media(max-width:900px) {
+      body {
+        height: auto;
+        overflow: auto
+      }
+
+      header {
+        flex-wrap: wrap
+      }
+
+      .stepper {
+        order: 3;
+        max-width: none;
+        width: 100%;
+        justify-content: flex-start
+      }
+
+      main {
+        height: auto;
+        grid-template-columns: 1fr
+      }
+
+      .guide-panel {
+        min-height: 720px
+      }
+
+      .grid-3,
+      .grid-5,
+      .grid-6 {
+        grid-template-columns: repeat(2, 1fr)
+      }
+    }
+
+    @media(max-width:560px) {
+      header {
+        padding: 10px
+      }
+
+      .team-opt {
+        padding: 5px 7px
+      }
+
+      .grid-3,
+      .grid-4,
+      .grid-5,
+      .grid-6 {
+        grid-template-columns: 1fr
+      }
+
+      .guide-header {
+        align-items: flex-start;
+        gap: 5px;
+        flex-direction: column
+      }
+
+      .shortcuts {
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-start
+      }
+
+      .clock-display {
+        font-size: 48px
+      }
+    }
   </style>
 </head>
+
 <body>
   <header>
-    <div class="brand"><span class="brand-icon">▣</span><div><div class="brand-title">DAY 10 · DATA PIPELINE LAB</div><div class="brand-sub">4 giờ tổng cộng: 3 giờ 45 làm việc + nghỉ 15 phút lúc 02:00</div></div></div>
-    <div class="stepper" id="stepper" aria-label="Danh sách checkpoint"><button class="step-btn active" type="button" title="CHECKPOINT 0 · 00:00–00:30" aria-label="CHECKPOINT 0 · 00:00–00:30" onclick="jumpToCP(0)"><span>CP0</span></button><button class="step-btn" type="button" title="CHECKPOINT 1 · 00:30–01:05" aria-label="CHECKPOINT 1 · 00:30–01:05" onclick="jumpToCP(1)"><span>CP1</span></button><button class="step-btn" type="button" title="CHECKPOINT 2 · 01:05–01:35" aria-label="CHECKPOINT 2 · 01:05–01:35" onclick="jumpToCP(2)"><span>CP2</span></button><button class="step-btn" type="button" title="CHECKPOINT 3 · 01:35–02:00" aria-label="CHECKPOINT 3 · 01:35–02:00" onclick="jumpToCP(3)"><span>CP3</span></button><button class="step-btn" type="button" title="CHECKPOINT 4 · 02:00–02:15" aria-label="CHECKPOINT 4 · 02:00–02:15" onclick="jumpToCP(4)"><span>CP4</span></button><button class="step-btn" type="button" title="CHECKPOINT 5 · 02:15–03:15" aria-label="CHECKPOINT 5 · 02:15–03:15" onclick="jumpToCP(5)"><span>CP5</span></button><button class="step-btn" type="button" title="CHECKPOINT 6 · 03:15–04:00" aria-label="CHECKPOINT 6 · 03:15–04:00" onclick="jumpToCP(6)"><span>CP6</span></button></div>
-    <div class="team-switch" aria-label="Chọn số thành viên"><button class="team-opt" onclick="setTeamSize(3)">Nhóm 3</button><button class="team-opt active" onclick="setTeamSize(4)">Nhóm 4</button><button class="team-opt" onclick="setTeamSize(5)">Nhóm 5</button><button class="team-opt" onclick="setTeamSize(6)">Nhóm 6</button></div>
+    <div class="brand"><span class="brand-icon">▣</span>
+      <div>
+        <div class="brand-title">DAY 10 · DATA PIPELINE LAB</div>
+        <div class="brand-sub">4 giờ tổng cộng: 3 giờ 45 làm việc + nghỉ 15 phút lúc 02:00</div>
+      </div>
+    </div>
+    <div class="stepper" id="stepper" aria-label="Danh sách checkpoint"><button class="step-btn active" type="button"
+        title="CHECKPOINT 0 · 00:00–00:30" aria-label="CHECKPOINT 0 · 00:00–00:30"
+        onclick="jumpToCP(0)"><span>CP0</span></button><button class="step-btn" type="button"
+        title="CHECKPOINT 1 · 00:30–01:05" aria-label="CHECKPOINT 1 · 00:30–01:05"
+        onclick="jumpToCP(1)"><span>CP1</span></button><button class="step-btn" type="button"
+        title="CHECKPOINT 2 · 01:05–01:35" aria-label="CHECKPOINT 2 · 01:05–01:35"
+        onclick="jumpToCP(2)"><span>CP2</span></button><button class="step-btn" type="button"
+        title="CHECKPOINT 3 · 01:35–02:00" aria-label="CHECKPOINT 3 · 01:35–02:00"
+        onclick="jumpToCP(3)"><span>CP3</span></button><button class="step-btn" type="button"
+        title="CHECKPOINT 4 · 02:00–02:15" aria-label="CHECKPOINT 4 · 02:00–02:15"
+        onclick="jumpToCP(4)"><span>CP4</span></button><button class="step-btn" type="button"
+        title="CHECKPOINT 5 · 02:15–03:15" aria-label="CHECKPOINT 5 · 02:15–03:15"
+        onclick="jumpToCP(5)"><span>CP5</span></button><button class="step-btn" type="button"
+        title="CHECKPOINT 6 · 03:15–04:00" aria-label="CHECKPOINT 6 · 03:15–04:00"
+        onclick="jumpToCP(6)"><span>CP6</span></button></div>
+    <div class="team-switch" aria-label="Chọn số thành viên"><button class="team-opt" onclick="setTeamSize(3)">Nhóm
+        3</button><button class="team-opt active" onclick="setTeamSize(4)">Nhóm 4</button><button class="team-opt"
+        onclick="setTeamSize(5)">Nhóm 5</button><button class="team-opt" onclick="setTeamSize(6)">Nhóm 6</button></div>
   </header>
   <main>
     <aside class="timer-panel">
-      <div class="cp-header"><span class="cp-badge" id="cp-badge">CHECKPOINT 0</span><div class="cp-title" id="cp-title">Khởi động, contract &amp; ingestion raw</div></div>
-      <div class="clock-box"><div class="clock-display" id="clock" aria-live="polite">30:00</div><div class="edit-time-box"><span>Thời lượng mốc:</span><input type="number" id="time-input" value="30" min="1" max="180" onchange="updateCustomTime()"><span>phút</span></div></div>
+      <div class="cp-header"><span class="cp-badge" id="cp-badge">CHECKPOINT 0</span>
+        <div class="cp-title" id="cp-title">Khởi động, contract &amp; ingestion raw</div>
+      </div>
+      <div class="clock-box">
+        <div class="clock-display" id="clock" aria-live="polite">30:00</div>
+        <div class="edit-time-box"><span>Thời lượng mốc:</span><input type="number" id="time-input" value="30" min="1"
+            max="180" onchange="updateCustomTime()"><span>phút</span></div>
+      </div>
       <div class="time-note" id="time-note">00:00–00:30 · timeline gốc vẫn tổng cộng 04:00.</div>
-      <div style="display:flex;flex-direction:column;gap:8px"><div class="timer-controls"><button class="btn btn-primary" id="btn-toggle" onclick="toggleTimer()"><span>▶</span><span id="btn-toggle-text">BẮT ĐẦU</span></button><button class="btn btn-secondary" onclick="resetTimer()">↺ Reset</button></div><div class="nav-controls"><button class="btn-nav" onclick="prevCP()">← Checkpoint trước</button><button class="btn-nav" onclick="nextCP()">Checkpoint tiếp →</button></div></div>
-      <div class="cmd-card"><div class="cmd-title">Lệnh / kiểm tra nhanh</div><div class="cmd-box" id="cp-cmd">rg -n "TODO\(student\)|NotImplementedError" src</div></div>
-      <div class="pass-card"><div class="pass-title">✓ Tiêu chí hoàn thành mốc</div><div id="cp-pass">Cả nhóm thống nhất contract và phân công.</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="timer-controls"><button class="btn btn-primary" id="btn-toggle"
+            onclick="toggleTimer()"><span>▶</span><span id="btn-toggle-text">BẮT ĐẦU</span></button><button
+            class="btn btn-secondary" onclick="resetTimer()">↺ Reset</button></div>
+        <div class="nav-controls"><button class="btn-nav" onclick="prevCP()">← Checkpoint trước</button><button
+            class="btn-nav" onclick="nextCP()">Checkpoint tiếp →</button></div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-title">Lệnh / kiểm tra nhanh</div>
+        <div class="cmd-box" id="cp-cmd">rg -n "TODO\(student\)|NotImplementedError" src</div>
+      </div>
+      <div class="pass-card">
+        <div class="pass-title">✓ Tiêu chí hoàn thành mốc</div>
+        <div id="cp-pass">Cả nhóm thống nhất contract và phân công.</div>
+      </div>
       <div class="session-bar">Tổng phiên: <b>04:00</b> · Nghỉ: <b>02:00–02:15</b></div>
     </aside>
     <section class="guide-panel">
-      <div class="guide-header"><div class="guide-title"><span>▤</span> Phân công chi tiết &amp; file cần xử lý</div><div class="guide-sub" id="team-info-label">Đang chọn: Nhóm 4 người</div></div>
-      <div class="shared-rules"><strong>Quy tắc xuyên suốt — đọc một lần, áp dụng cho toàn bộ lab</strong><ul><li>Chỉ chạy corruption sau khi baseline đã tạo đủ artifact.</li><li>Giữ nguyên test set, ground truth, evaluator và top-k khi so sánh baseline / corrupted / repaired.</li><li>Dùng paths và collection riêng cho ba trạng thái; không ghi đè baseline.</li><li>Repair bằng cách chạy lại từ raw/source đáng tin, không sửa tay answers hoặc metrics.</li><li>Report phải trỏ tới artifact thật; không commit API key hoặc <code>.env</code>.</li></ul></div>
+      <div class="guide-header">
+        <div class="guide-title"><span>▤</span> Phân công chi tiết &amp; file cần xử lý</div>
+        <div class="guide-sub" id="team-info-label">Đang chọn: Nhóm 4 người</div>
+      </div>
+      <div class="shared-rules"><strong>Quy tắc xuyên suốt — đọc một lần, áp dụng cho toàn bộ lab</strong>
+        <ul>
+          <li>Chỉ chạy corruption sau khi baseline đã tạo đủ artifact.</li>
+          <li>Giữ nguyên test set, ground truth, evaluator và top-k khi so sánh baseline / corrupted / repaired.</li>
+          <li>Dùng paths và collection riêng cho ba trạng thái; không ghi đè baseline.</li>
+          <li>Repair bằng cách chạy lại từ raw/source đáng tin, không sửa tay answers hoặc metrics.</li>
+          <li>Report phải trỏ tới artifact thật; không commit API key hoặc <code>.env</code>.</li>
+        </ul>
+      </div>
       <div class="roles-grid grid-4" id="roles-container"></div>
       <div class="checkpoint-note" id="checkpoint-note">Lưu ý checkpoint sẽ hiển thị ở đây.</div>
-      <div class="shortcuts"><span><kbd>Space</kbd> Chạy / dừng</span><span><kbd>→</kbd> Checkpoint tiếp</span><span><kbd>←</kbd> Checkpoint trước</span><span><kbd>R</kbd> Reset thời gian</span></div>
+      <div class="shortcuts"><span><kbd>Space</kbd> Chạy / dừng</span><span><kbd>→</kbd> Checkpoint
+          tiếp</span><span><kbd>←</kbd> Checkpoint trước</span><span><kbd>R</kbd> Reset thời gian</span></div>
     </section>
   </main>
   <script>
     const CHECKPOINTS = {
-      0:{badge:'CHECKPOINT 0 · 00:00–00:30',title:'Khởi động, contract & ingestion raw',minutes:30,cmd:'ls data/raw  # sau lần fetch đầu tiên',pass:'Raw response và raw records JSON tồn tại; PaperRecord có stable paper_id; mỗi người biết rõ artifact mình bàn giao.',work:{lead:['Chốt ownership, branch, definition of done và tên/path artifact.','Kiểm tra Python 3.11–3.13, dependencies, provider config và .env cục bộ.','Lập sơ đồ handoff raw → clean → index → evaluate → report.'],ingest:['Đọc Crossref payload và PaperRecord; xác định field tạo stable paper_id.','Implement parse_crossref_payload và fetch/load theo contract Settings.','Lưu raw API response trước parse; thêm retry/backoff cho 429/503.'],clean:['Đọc target clean schema; chốt rule null, date, duplicate, authors/categories.','Chỉ ra field tạo text_for_embedding và age_days.','Chuẩn bị sample validation raw → clean để chạy ở CP1.'],rag:['Đọc LocalEmbeddingIndex, embeddings, agent để biết input/output cần có.','Chốt embedding model, collection naming và metadata tối thiểu.','Chuẩn bị smoke query/lookup sẽ dùng sau khi index.'],eval:['Đọc testset.py, qa.py, metrics.py để hiểu format answer và metric.','Thiết kế question summary/authors/date/categories từ dữ liệu thật.','Nêu ground_truth_doc_ids lấy từ paper_id clean, không tự bịa ID.'],observe:['Liệt kê artifact phải có sau baseline và corruption flow.','Định nghĩa signals: row count, null, duplicate, age_days, source timestamp.','Phác thảo report chứng minh data xấu làm RAG kém đi.']},warn:'Nếu Crossref lỗi tạm thời, dùng retry/backoff; không bỏ raw response hoặc thay bằng dữ liệu bịa.'},
-      1:{badge:'CHECKPOINT 1 · 00:30–01:05',title:'Cleaning, data model & quality gates',minutes:35,cmd:'ls data/clean',pass:'Clean CSV/JSON đọc được; paper_id unique; text_for_embedding và age_days có mặt; count/lý do record bị loại có thể truy vết.',work:{lead:['Chốt clean contract: input, output, tên file và điều kiện dừng.','Review raw count → clean count; ghi bất thường thành blocker có evidence.','Chỉ gọi test set/index sau khi clean schema ổn định.'],ingest:['Đối chiếu raw snapshot với PaperRecord đã parse; truy vết DOI/ID lỗi.','Xác minh raw records có đủ field để cleaning không phải đoán dữ liệu.','Bàn giao raw path và sample record cho cleaning owner.'],clean:['Implement normalize title/summary/authors/categories; parse published date.','Dedupe theo stable ID, tính age_days, build text_for_embedding.','Ghi clean artifacts và log/count lý do filter hoặc dedupe.'],rag:['Đọc vài text_for_embedding thật: đủ title/summary, không rỗng, không lặp vô ích.','Xác nhận dataframe có paper_id, title, content và metadata index cần.','Chuẩn bị config index từ clean path, chưa build collection final.'],eval:['Chọn paper đại diện từ cleaned dataframe, không dùng raw chưa clean.','Viết draft question/ground truth có thể kiểm chứng bằng nội dung paper.','Chờ paper_id stable trước khi ghi test set.'],observe:['Implement check row count, paper_id unique, title/summary missing và duplicate.','Tạo freshness input từ published/age_days thay vì ngày hiện tại giả định.','Ghi quality report đầu tiên để làm evidence baseline.']},warn:'Mọi filter và dedupe phải để lại count hoặc log: đừng làm mất record âm thầm.'},
-      2:{badge:'CHECKPOINT 2 · 01:05–01:35',title:'Test set, RAG index & agent smoke test',minutes:30,cmd:'find data -maxdepth 2 -type f | sort',pass:'test_set.json, embedding manifest và collection baseline tồn tại; semantic search, exact lookup và agent đều trả về kết quả có nguồn.',work:{lead:['Khóa clean schema và điều phối handoff clean → test set/index.','Kiểm tra collection/path baseline được đặt riêng, dễ tái lập.','Ghi blocker nào phải xử lý trước khi chạy end-to-end.'],ingest:['Kiểm tra một paper_id xuyên suốt raw → clean → index metadata.','Cung cấp source evidence khi evaluator hoặc agent trả lời sai.','Không refresh source giữa chừng làm baseline thay đổi.'],clean:['Xác minh không còn text_for_embedding rỗng và paper_id bị trùng.','Review row được chọn vào test set để đảm bảo nội dung sạch.','Sửa schema contract nếu index/test set báo thiếu field.'],rag:['Build MiniLM embeddings và Chroma collection papers-baseline từ clean data.','Test semantic_search và lookup với query có thể kiểm chứng.','Build agent, yêu cầu tool trước khi trả lời factual và kiểm tra tool output.'],eval:['Implement build_test_set với id, type, question, ground_truth, ground_truth_doc_ids.','Tạo question từ cleaned data; kiểm tra ID đều tồn tại trong index.','Lưu test set cố định và đọc thử vài row trước evaluation.'],observe:['Kiểm tra embedding manifest, collection name và count documents có thể audit.','Ghi baseline quality/freshness signals sẽ đối chiếu sau corruption.','Chuẩn bị khuôn phase1 report để chỉ điền số liệu thật ở CP3.']},warn:'Nếu smoke test không tìm thấy tài liệu, sửa contract index/clean trước; không chuyển sang evaluation bằng collection lỗi.'},
-      3:{badge:'CHECKPOINT 3 · 01:35–02:00',title:'Baseline end-to-end & báo cáo',minutes:25,cmd:'uv run python script/run_phase1.py',pass:'baseline_metrics.json, answers, quality/freshness và phase1_report.md tồn tại; team giải thích được ít nhất một hit/miss bằng artifact.',work:{lead:['Implement phase1.py theo raw → clean → index → test set → evaluate → quality/freshness → report.','Chạy baseline entrypoint end-to-end và ghi traceback/blocker nếu fail.','Kiểm tra paths/artifacts trước giờ nghỉ, không chỉ nhìn terminal báo done.'],ingest:['Xác minh raw response, raw records và lineage sample vẫn đọc được.','So sánh raw/clean count; nêu rõ chênh lệch có lý do.','Đảm bảo phase1 không fetch lại source ngoài ý muốn.'],clean:['Kiểm tra clean schema, age_days và text_for_embedding trong artifact đã ghi.','Xác minh quality check phản ánh dữ liệu thật, không hard-code pass.','Sửa contract issue có evidence rồi chạy lại baseline nếu cần.'],rag:['Xác nhận papers-baseline và embedding manifest khớp clean dataset.','Demo một semantic search và một exact lookup cho team.','Kiểm tra agent factual answer dùng tool result, không vượt corpus.'],eval:['Run evaluator tạo answers và baseline_metrics.json.','Đọc một hit/miss; kiểm tra ground truth/doc ID hợp lệ.','Giải thích retrieval_hit_rate, token F1 và judge metric hiện có.'],observe:['Run data quality, freshness và generate_phase1_report.','Đối chiếu report với JSON/CSV thật trước khi coi baseline hoàn tất.','Ghi baseline signals/metrics làm mốc sau nghỉ.']},warn:'Baseline chỉ hoàn tất khi artifacts, metrics và report khớp nhau — không phải chỉ khi script exit code 0.'},
-      4:{badge:'CHECKPOINT 4 · 02:00–02:15',title:'Nghỉ 15 phút',minutes:15,cmd:'cat data/results/baseline_metrics.json',pass:'Nghỉ đủ 15 phút; quay lại với corruption scenario đã có raw source, signal kỳ vọng và cách repair.',work:{lead:['Ghi baseline checklist và một blocker còn lại, rồi nghỉ.'],ingest:['Nghỉ; sau đó dùng raw source làm điểm khôi phục.'],clean:['Nghỉ; sau đó chọn corruption có chủ đích trên clean data.'],rag:['Nghỉ; sau đó giữ ví dụ query baseline để đối chiếu.'],eval:['Nghỉ; sau đó dùng lại test set đã khóa.'],observe:['Nghỉ; sau đó dự báo quality/freshness signal sẽ thay đổi.']},warn:'Nghỉ đủ 15 phút; thời gian này đã nằm trong tổng phiên 4 giờ.'},
-      5:{badge:'CHECKPOINT 5 · 02:15–03:15',title:'Corruption có kiểm soát & đo impact',minutes:60,cmd:'uv run python script/run_corruption_flow.py',pass:'Corruption log, corrupted clean/index/answers/metrics/quality và report có đủ; baseline không bị ghi đè.',work:{lead:['Implement corruption_flow: corrupt → rebuild → evaluate → quality/freshness → repair → compare.','Kiểm tra output corrupted có path/collection riêng, không ghi đè baseline.','Dừng để sửa data contract thay vì vá JSON kết quả.'],ingest:['Xác nhận raw source nguyên vẹn trước khi corrupt clean data.','Chọn record có lineage rõ để chứng minh có thể repair.','Kiểm tra corrupted flow không fetch source mới làm comparison mất công bằng.'],clean:['Implement corrupt_clean_dataframe: missing/latest drop/noise/old date/duplicate.','Log record ID, type, parameter, before/after count cho từng corruption.','Xác nhận corrupted dataset khác baseline đúng như log mô tả.'],rag:['Build papers-corrupted riêng từ corrupted clean data.','Chạy lại query baseline để quan sát retrieval đổi thế nào.','Kiểm tra papers-baseline còn đọc được và không bị mutate.'],eval:['Evaluate corrupted với test set cũ và tạo answers/metrics.','So answer và metric với baseline; tìm một case xấu đi có evidence.','Kiểm tra evaluator không silently fallback thành success giả.'],observe:['Run quality/freshness cho corrupted dataset và lưu report riêng.','Nối corruption log với quality signal và metric change khi có evidence.','Ghi signal nào không đổi để tránh kết luận quá mức.']},warn:'Lỗi data phải có chủ đích, có log và đo được tác động; không tạo corruption chỉ để có file.'},
-      6:{badge:'CHECKPOINT 6 · 03:15–04:00',title:'Repair từ raw, comparison, review & demo',minutes:45,cmd:'ls data/results/repaired_metrics.json data/reports/corruption_report.md',pass:'Repaired artifacts và comparison report có baseline–corrupted–repaired/delta; repo không có secret; demo dùng artifact thật.',work:{lead:['Điều phối repair/comparison, freeze scope và chia phần demo.','Chạy checklist cuối: artifacts đủ, reports match outputs, no secret/no hard-code path.','Chỉ công bố recovery khi số liệu và report chứng minh.'],ingest:['Reload raw records đúng snapshot/source dùng ở baseline.','Chứng minh record corrupt/drop đã phục hồi bằng lineage/source evidence.','Hỗ trợ kiểm tra config/API key không lọt vào Git.'],clean:['Re-run cleaning từ raw tạo repaired dataset, không copy sửa tay từ baseline.','Kiểm tra repaired schema, row count và quality signals.','Demo khác biệt clean/corrupted/repaired cho team.'],rag:['Build papers-repaired riêng và smoke test cùng query baseline.','Kiểm tra agent dùng tools và retrieval trả về document repaired.','Demo ba collection/path tách biệt, tái lập được.'],eval:['Evaluate repaired với test set cũ và tính delta ba trạng thái.','Giải thích metric phục hồi/không phục hồi bằng answers thực tế.','Chuẩn bị một hit/miss tiêu biểu để demo trung thực.'],observe:['Generate comparison report từ metrics/quality/freshness thật.','Nêu recovery chưa hoàn toàn nếu signals hoặc metrics còn xấu.','Demo bảng/báo cáo comparison và giới hạn của kết luận.']},warn:'Ưu tiên evidence: report phải khớp artifact thật, không tô đẹp số liệu để demo.'}
+      0: { badge: 'CHECKPOINT 0 · 00:00–00:30', title: 'Khởi động, contract & ingestion raw', minutes: 30, cmd: 'ls data/raw  # sau lần fetch đầu tiên', pass: 'Raw response và raw records JSON tồn tại; PaperRecord có stable paper_id; mỗi người biết rõ artifact mình bàn giao.', work: { lead: ['Chốt ownership, branch, definition of done và tên/path artifact.', 'Kiểm tra Python 3.11–3.13, dependencies, provider config và .env cục bộ.', 'Lập sơ đồ handoff raw → clean → index → evaluate → report.'], ingest: ['Đọc Crossref payload và PaperRecord; xác định field tạo stable paper_id.', 'Implement parse_crossref_payload và fetch/load theo contract Settings.', 'Lưu raw API response trước parse; thêm retry/backoff cho 429/503.'], clean: ['Đọc target clean schema; chốt rule null, date, duplicate, authors/categories.', 'Chỉ ra field tạo text_for_embedding và age_days.', 'Chuẩn bị sample validation raw → clean để chạy ở CP1.'], rag: ['Đọc LocalEmbeddingIndex, embeddings, agent để biết input/output cần có.', 'Chốt embedding model, collection naming và metadata tối thiểu.', 'Chuẩn bị smoke query/lookup sẽ dùng sau khi index.'], eval: ['Đọc testset.py, qa.py, metrics.py để hiểu format answer và metric.', 'Thiết kế question summary/authors/date/categories từ dữ liệu thật.', 'Nêu ground_truth_doc_ids lấy từ paper_id clean, không tự bịa ID.'], observe: ['Liệt kê artifact phải có sau baseline và corruption flow.', 'Định nghĩa signals: row count, null, duplicate, age_days, source timestamp.', 'Phác thảo report chứng minh data xấu làm RAG kém đi.'] }, warn: 'Nếu Crossref lỗi tạm thời, dùng retry/backoff; không bỏ raw response hoặc thay bằng dữ liệu bịa.' },
+      1: { badge: 'CHECKPOINT 1 · 00:30–01:05', title: 'Cleaning, data model & quality gates', minutes: 35, cmd: 'ls data/clean', pass: 'Clean CSV/JSON đọc được; paper_id unique; text_for_embedding và age_days có mặt; count/lý do record bị loại có thể truy vết.', work: { lead: ['Chốt clean contract: input, output, tên file và điều kiện dừng.', 'Review raw count → clean count; ghi bất thường thành blocker có evidence.', 'Chỉ gọi test set/index sau khi clean schema ổn định.'], ingest: ['Đối chiếu raw snapshot với PaperRecord đã parse; truy vết DOI/ID lỗi.', 'Xác minh raw records có đủ field để cleaning không phải đoán dữ liệu.', 'Bàn giao raw path và sample record cho cleaning owner.'], clean: ['Implement normalize title/summary/authors/categories; parse published date.', 'Dedupe theo stable ID, tính age_days, build text_for_embedding.', 'Ghi clean artifacts và log/count lý do filter hoặc dedupe.'], rag: ['Đọc vài text_for_embedding thật: đủ title/summary, không rỗng, không lặp vô ích.', 'Xác nhận dataframe có paper_id, title, content và metadata index cần.', 'Chuẩn bị config index từ clean path, chưa build collection final.'], eval: ['Chọn paper đại diện từ cleaned dataframe, không dùng raw chưa clean.', 'Viết draft question/ground truth có thể kiểm chứng bằng nội dung paper.', 'Chờ paper_id stable trước khi ghi test set.'], observe: ['Implement check row count, paper_id unique, title/summary missing và duplicate.', 'Tạo freshness input từ published/age_days thay vì ngày hiện tại giả định.', 'Ghi quality report đầu tiên để làm evidence baseline.'] }, warn: 'Mọi filter và dedupe phải để lại count hoặc log: đừng làm mất record âm thầm.' },
+      2: { badge: 'CHECKPOINT 2 · 01:05–01:35', title: 'Test set, RAG index & agent smoke test', minutes: 30, cmd: 'find data -maxdepth 2 -type f | sort', pass: 'test_set.json, embedding manifest và collection baseline tồn tại; semantic search, exact lookup và agent đều trả về kết quả có nguồn.', work: { lead: ['Khóa clean schema và điều phối handoff clean → test set/index.', 'Kiểm tra collection/path baseline được đặt riêng, dễ tái lập.', 'Ghi blocker nào phải xử lý trước khi chạy end-to-end.'], ingest: ['Kiểm tra một paper_id xuyên suốt raw → clean → index metadata.', 'Cung cấp source evidence khi evaluator hoặc agent trả lời sai.', 'Không refresh source giữa chừng làm baseline thay đổi.'], clean: ['Xác minh không còn text_for_embedding rỗng và paper_id bị trùng.', 'Review row được chọn vào test set để đảm bảo nội dung sạch.', 'Sửa schema contract nếu index/test set báo thiếu field.'], rag: ['Build MiniLM embeddings và Chroma collection papers-baseline từ clean data.', 'Test semantic_search và lookup với query có thể kiểm chứng.', 'Build agent, yêu cầu tool trước khi trả lời factual và kiểm tra tool output.'], eval: ['Implement build_test_set với id, type, question, ground_truth, ground_truth_doc_ids.', 'Tạo question từ cleaned data; kiểm tra ID đều tồn tại trong index.', 'Lưu test set cố định và đọc thử vài row trước evaluation.'], observe: ['Kiểm tra embedding manifest, collection name và count documents có thể audit.', 'Ghi baseline quality/freshness signals sẽ đối chiếu sau corruption.', 'Chuẩn bị khuôn phase1 report để chỉ điền số liệu thật ở CP3.'] }, warn: 'Nếu smoke test không tìm thấy tài liệu, sửa contract index/clean trước; không chuyển sang evaluation bằng collection lỗi.' },
+      3: { badge: 'CHECKPOINT 3 · 01:35–02:00', title: 'Baseline end-to-end & báo cáo', minutes: 25, cmd: 'uv run python script/run_phase1.py', pass: 'baseline_metrics.json, answers, quality/freshness và phase1_report.md tồn tại; team giải thích được ít nhất một hit/miss bằng artifact.', work: { lead: ['Implement phase1.py theo raw → clean → index → test set → evaluate → quality/freshness → report.', 'Chạy baseline entrypoint end-to-end và ghi traceback/blocker nếu fail.', 'Kiểm tra paths/artifacts trước giờ nghỉ, không chỉ nhìn terminal báo done.'], ingest: ['Xác minh raw response, raw records và lineage sample vẫn đọc được.', 'So sánh raw/clean count; nêu rõ chênh lệch có lý do.', 'Đảm bảo phase1 không fetch lại source ngoài ý muốn.'], clean: ['Kiểm tra clean schema, age_days và text_for_embedding trong artifact đã ghi.', 'Xác minh quality check phản ánh dữ liệu thật, không hard-code pass.', 'Sửa contract issue có evidence rồi chạy lại baseline nếu cần.'], rag: ['Xác nhận papers-baseline và embedding manifest khớp clean dataset.', 'Demo một semantic search và một exact lookup cho team.', 'Kiểm tra agent factual answer dùng tool result, không vượt corpus.'], eval: ['Run evaluator tạo answers và baseline_metrics.json.', 'Đọc một hit/miss; kiểm tra ground truth/doc ID hợp lệ.', 'Giải thích retrieval_hit_rate, token F1 và judge metric hiện có.'], observe: ['Run data quality, freshness và generate_phase1_report.', 'Đối chiếu report với JSON/CSV thật trước khi coi baseline hoàn tất.', 'Ghi baseline signals/metrics làm mốc sau nghỉ.'] }, warn: 'Baseline chỉ hoàn tất khi artifacts, metrics và report khớp nhau — không phải chỉ khi script exit code 0.' },
+      4: { badge: 'CHECKPOINT 4 · 02:00–02:15', title: 'Nghỉ 15 phút', minutes: 15, cmd: 'cat data/results/baseline_metrics.json', pass: 'Nghỉ đủ 15 phút; quay lại với corruption scenario đã có raw source, signal kỳ vọng và cách repair.', work: { lead: ['Ghi baseline checklist và một blocker còn lại, rồi nghỉ.'], ingest: ['Nghỉ; sau đó dùng raw source làm điểm khôi phục.'], clean: ['Nghỉ; sau đó chọn corruption có chủ đích trên clean data.'], rag: ['Nghỉ; sau đó giữ ví dụ query baseline để đối chiếu.'], eval: ['Nghỉ; sau đó dùng lại test set đã khóa.'], observe: ['Nghỉ; sau đó dự báo quality/freshness signal sẽ thay đổi.'] }, warn: 'Nghỉ đủ 15 phút; thời gian này đã nằm trong tổng phiên 4 giờ.' },
+      5: { badge: 'CHECKPOINT 5 · 02:15–03:15', title: 'Corruption có kiểm soát & đo impact', minutes: 60, cmd: 'uv run python script/run_corruption_flow.py', pass: 'Corruption log, corrupted clean/index/answers/metrics/quality và report có đủ; baseline không bị ghi đè.', work: { lead: ['Implement corruption_flow: corrupt → rebuild → evaluate → quality/freshness → repair → compare.', 'Kiểm tra output corrupted có path/collection riêng, không ghi đè baseline.', 'Dừng để sửa data contract thay vì vá JSON kết quả.'], ingest: ['Xác nhận raw source nguyên vẹn trước khi corrupt clean data.', 'Chọn record có lineage rõ để chứng minh có thể repair.', 'Kiểm tra corrupted flow không fetch source mới làm comparison mất công bằng.'], clean: ['Implement corrupt_clean_dataframe: missing/latest drop/noise/old date/duplicate.', 'Log record ID, type, parameter, before/after count cho từng corruption.', 'Xác nhận corrupted dataset khác baseline đúng như log mô tả.'], rag: ['Build papers-corrupted riêng từ corrupted clean data.', 'Chạy lại query baseline để quan sát retrieval đổi thế nào.', 'Kiểm tra papers-baseline còn đọc được và không bị mutate.'], eval: ['Evaluate corrupted với test set cũ và tạo answers/metrics.', 'So answer và metric với baseline; tìm một case xấu đi có evidence.', 'Kiểm tra evaluator không silently fallback thành success giả.'], observe: ['Run quality/freshness cho corrupted dataset và lưu report riêng.', 'Nối corruption log với quality signal và metric change khi có evidence.', 'Ghi signal nào không đổi để tránh kết luận quá mức.'] }, warn: 'Lỗi data phải có chủ đích, có log và đo được tác động; không tạo corruption chỉ để có file.' },
+      6: { badge: 'CHECKPOINT 6 · 03:15–04:00', title: 'Repair từ raw, comparison, review & demo', minutes: 45, cmd: 'ls data/results/repaired_metrics.json data/reports/corruption_report.md', pass: 'Repaired artifacts và comparison report có baseline–corrupted–repaired/delta; repo không có secret; demo dùng artifact thật.', work: { lead: ['Điều phối repair/comparison, freeze scope và chia phần demo.', 'Chạy checklist cuối: artifacts đủ, reports match outputs, no secret/no hard-code path.', 'Chỉ công bố recovery khi số liệu và report chứng minh.'], ingest: ['Reload raw records đúng snapshot/source dùng ở baseline.', 'Chứng minh record corrupt/drop đã phục hồi bằng lineage/source evidence.', 'Hỗ trợ kiểm tra config/API key không lọt vào Git.'], clean: ['Re-run cleaning từ raw tạo repaired dataset, không copy sửa tay từ baseline.', 'Kiểm tra repaired schema, row count và quality signals.', 'Demo khác biệt clean/corrupted/repaired cho team.'], rag: ['Build papers-repaired riêng và smoke test cùng query baseline.', 'Kiểm tra agent dùng tools và retrieval trả về document repaired.', 'Demo ba collection/path tách biệt, tái lập được.'], eval: ['Evaluate repaired với test set cũ và tính delta ba trạng thái.', 'Giải thích metric phục hồi/không phục hồi bằng answers thực tế.', 'Chuẩn bị một hit/miss tiêu biểu để demo trung thực.'], observe: ['Generate comparison report từ metrics/quality/freshness thật.', 'Nêu recovery chưa hoàn toàn nếu signals hoặc metrics còn xấu.', 'Demo bảng/báo cáo comparison và giới hạn của kết luận.'] }, warn: 'Ưu tiên evidence: report phải khớp artifact thật, không tô đẹp số liệu để demo.' }
     };
 
     const TEAM_ROLES = {
-      3:[['lead|ingest|clean','Data foundation & pipeline','ingestion, cleaning, repair, orchestration','src/ingestion/ · src/pipelines/'],['rag|eval','RAG & evaluation','index, agent, test set, answers, metrics','src/retrieval/ · src/evaluation/'],['observe','Observability & reporting','quality, freshness, evidence, reports','src/observability/ · data/reports/']],
-      4:[['lead','Pipeline integrator','settings, orchestration, release, demo','src/core/ · src/pipelines/'],['ingest|clean','Data foundation & recovery','Crossref, clean schema, corruption, repair','src/ingestion/ · data/raw/ · data/clean/'],['rag','RAG & agent owner','MiniLM, Chroma, search, lookup','src/retrieval/ · data/embeddings/'],['eval|observe','Evaluation & observability','test set, metrics, quality, freshness, reports','src/evaluation/ · src/observability/']],
-      5:[['lead','Pipeline integrator','settings, orchestration, release','src/core/ · src/pipelines/'],['ingest','Ingestion owner','Crossref + raw lineage','src/ingestion/crossref.py · data/raw/'],['clean','Cleaning & corruption owner','clean schema, corruption, repair','src/ingestion/cleaning.py · corruption.py'],['rag','RAG & agent owner','MiniLM, Chroma, search, lookup','src/retrieval/ · data/embeddings/'],['eval|observe','Evaluation & observability','test set, metrics, quality, freshness, reports','src/evaluation/ · src/observability/']],
-      6:[['lead','Integrator & release owner','orchestration, QA, demo','src/pipelines/ · script/'],['ingest','Ingestion owner','Crossref + raw lineage','src/ingestion/crossref.py · data/raw/'],['clean','Cleaning & corruption owner','schema, corruption, repair','src/ingestion/cleaning.py · corruption.py'],['rag','RAG & agent owner','MiniLM, Chroma, search, lookup','src/retrieval/ · data/embeddings/'],['eval','Evaluation owner','test set, answers, metrics','src/evaluation/ · data/eval/'],['observe','Observability owner','quality, freshness, reports','src/observability/ · data/quality/']]
+      3: [['lead|ingest|clean', 'Data foundation & pipeline', 'ingestion, cleaning, repair, orchestration', 'src/ingestion/ · src/pipelines/'], ['rag|eval', 'RAG & evaluation', 'index, agent, test set, answers, metrics', 'src/retrieval/ · src/evaluation/'], ['observe', 'Observability & reporting', 'quality, freshness, evidence, reports', 'src/observability/ · data/reports/']],
+      4: [['lead', 'Pipeline integrator', 'settings, orchestration, release, demo', 'src/core/ · src/pipelines/'], ['ingest|clean', 'Data foundation & recovery', 'Crossref, clean schema, corruption, repair', 'src/ingestion/ · data/raw/ · data/clean/'], ['rag', 'RAG & agent owner', 'MiniLM, Chroma, search, lookup', 'src/retrieval/ · data/embeddings/'], ['eval|observe', 'Evaluation & observability', 'test set, metrics, quality, freshness, reports', 'src/evaluation/ · src/observability/']],
+      5: [['lead', 'Pipeline integrator', 'settings, orchestration, release', 'src/core/ · src/pipelines/'], ['ingest', 'Ingestion owner', 'Crossref + raw lineage', 'src/ingestion/crossref.py · data/raw/'], ['clean', 'Cleaning & corruption owner', 'clean schema, corruption, repair', 'src/ingestion/cleaning.py · corruption.py'], ['rag', 'RAG & agent owner', 'MiniLM, Chroma, search, lookup', 'src/retrieval/ · data/embeddings/'], ['eval|observe', 'Evaluation & observability', 'test set, metrics, quality, freshness, reports', 'src/evaluation/ · src/observability/']],
+      6: [['lead', 'Integrator & release owner', 'orchestration, QA, demo', 'src/pipelines/ · script/'], ['ingest', 'Ingestion owner', 'Crossref + raw lineage', 'src/ingestion/crossref.py · data/raw/'], ['clean', 'Cleaning & corruption owner', 'schema, corruption, repair', 'src/ingestion/cleaning.py · corruption.py'], ['rag', 'RAG & agent owner', 'MiniLM, Chroma, search, lookup', 'src/retrieval/ · data/embeddings/'], ['eval', 'Evaluation owner', 'test set, answers, metrics', 'src/evaluation/ · data/eval/'], ['observe', 'Observability owner', 'quality, freshness, reports', 'src/observability/ · data/quality/']]
     };
 
-    const VI_REPLACEMENTS=[['definition of done','tiêu chí hoàn thành'],['Scope freeze','Chốt phạm vi'],['scope freeze','chốt phạm vi'],['source evidence','bằng chứng từ nguồn'],['quality signals','tín hiệu quality'],['metric change','thay đổi metric'],['smoke test','kiểm tra nhanh'],['hard-code','mã hóa cứng'],['fallback','phương án dự phòng'],['success','thành công'],['owner','người phụ trách'],['settings','cấu hình'],['source','nguồn'],['output','đầu ra'],['evidence','bằng chứng'],['signals','tín hiệu'],['factual','theo dữ kiện'],['Implement','Hoàn thiện'],['Build','Tạo'],['Review','Rà soát'],['Run','Chạy'],['Check','Kiểm tra'],['Verify','Xác minh'],['Demo','Trình bày'],['Reload','Nạp lại'],['Data foundation','Nền tảng dữ liệu'],['Pipeline integrator','Điều phối pipeline'],['Integrator & release owner','Điều phối & phụ trách release'],['Ingestion owner','Phụ trách ingestion'],['Cleaning & corruption owner','Phụ trách cleaning & corruption'],['RAG & agent owner','Phụ trách RAG & agent'],['Observability & reporting','Observability & báo cáo'],['Data foundation & recovery','Nền tảng dữ liệu & recovery']];
-    function toVietnamese(value){return VI_REPLACEMENTS.reduce((text,[from,to])=>text.replaceAll(from,to),String(value));}
-    let currentCPIndex=0, teamSize=4, timeLeftSeconds=CHECKPOINTS[0].minutes*60, timerInterval=null, isRunning=false;
-    window.addEventListener('DOMContentLoaded',()=>{renderStepper();loadCheckpoint(0);setupKeyboardShortcuts();});
-    function current(){return CHECKPOINTS[currentCPIndex];}
-    function renderStepper(){const el=document.getElementById('stepper');el.innerHTML='';Object.values(CHECKPOINTS).forEach((cp,index)=>{const b=document.createElement('button');b.className=`step-btn ${index===currentCPIndex?'active':''}`;b.innerHTML=`<span>CP${index}</span>`;b.title=cp.badge;b.setAttribute('aria-label',cp.badge);b.onclick=()=>jumpToCP(index);el.appendChild(b);});}
-    function setTeamSize(size){teamSize=size;document.querySelectorAll('.team-opt').forEach(opt=>opt.classList.toggle('active',opt.textContent===`Nhóm ${size}`));document.getElementById('team-info-label').innerText=`Đang chọn: Nhóm ${size} người`;document.getElementById('roles-container').className=`roles-grid grid-${size}`;renderRoles();}
-    function loadCheckpoint(index){currentCPIndex=index;const cp=current();document.querySelectorAll('.step-btn').forEach((b,i)=>{b.classList.toggle('active',i===index);b.classList.toggle('completed',i<index);});document.getElementById('cp-badge').innerText=cp.badge;document.getElementById('cp-title').innerText=toVietnamese(cp.title);document.getElementById('cp-pass').innerText=toVietnamese(cp.pass);document.getElementById('cp-cmd').innerText=cp.cmd;document.getElementById('checkpoint-note').innerHTML=`<b>Lưu ý mốc này:</b> ${toVietnamese(cp.warn)}`;document.getElementById('time-input').value=cp.minutes;document.getElementById('time-note').innerText=`${cp.badge.replace(/^CHECKPOINT \\d+ · /,'')} · timeline gốc vẫn tổng cộng 04:00.`;pauseTimer();timeLeftSeconds=cp.minutes*60;updateClockDisplay();renderRoles();}
-    function renderRoles(){const cp=current(),roles=TEAM_ROLES[teamSize],box=document.getElementById('roles-container');box.innerHTML='';roles.forEach((entry,index)=>{const [workKeys,name,goal,file]=entry,steps=workKeys.split('|').flatMap(key=>cp.work[key]||[])||[];const visibleSteps=steps.length?steps:['Rà soát phần tích hợp và gửi blocker kèm bằng chứng.','Không bắt đầu việc ngoài dependency của giai đoạn.'];const card=document.createElement('div');card.className='role-card';card.innerHTML=`<div><div class="role-head"><span class="role-badge badge-r${index+1}">VAI TRÒ ${index+1}</span><span class="role-name">${toVietnamese(name)}</span></div><div style="margin-top:6px"><div class="role-section-label">Phạm vi phụ trách</div><div class="role-goal">${toVietnamese(goal)}</div></div><div style="margin-top:6px"><div class="role-section-label">Trong mốc này</div><ul class="steps-list">${visibleSteps.map((x,i)=>`<li><span class="step-num">${i+1}.</span><span>${toVietnamese(x)}</span></li>`).join('')}</ul></div></div><div class="file-loc"><div class="file-loc-text">📂 ${file}</div><span class="file-loc-tag">Xử lý</span></div>`;box.appendChild(card);});}
-    function updateClockDisplay(){const m=Math.floor(timeLeftSeconds/60),s=timeLeftSeconds%60,clock=document.getElementById('clock');clock.innerText=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;clock.classList.remove('warning','danger');if(timeLeftSeconds<=60)clock.classList.add('danger');else if(timeLeftSeconds<=300)clock.classList.add('warning');}
-    function toggleTimer(){isRunning?pauseTimer():startTimer();}function startTimer(){if(isRunning)return;isRunning=true;document.getElementById('btn-toggle-text').innerText='TẠM DỪNG';document.getElementById('btn-toggle').style.background='var(--warning)';timerInterval=setInterval(()=>{if(timeLeftSeconds>0){timeLeftSeconds--;updateClockDisplay();}else{pauseTimer();playBeep();alert(`⏰ Hết thời gian: ${current().title}. Kiểm tra Pass Criteria trước khi chuyển checkpoint.`);}},1000);}function pauseTimer(){isRunning=false;clearInterval(timerInterval);document.getElementById('btn-toggle-text').innerText='BẮT ĐẦU';document.getElementById('btn-toggle').style.background='var(--primary)';}function resetTimer(){pauseTimer();timeLeftSeconds=current().minutes*60;updateClockDisplay();}function updateCustomTime(){const value=parseInt(document.getElementById('time-input').value,10);if(Number.isFinite(value)&&value>0){pauseTimer();timeLeftSeconds=value*60;updateClockDisplay();}}
-    function nextCP(){if(currentCPIndex<Object.keys(CHECKPOINTS).length-1)loadCheckpoint(currentCPIndex+1);}function prevCP(){if(currentCPIndex>0)loadCheckpoint(currentCPIndex-1);}function jumpToCP(index){loadCheckpoint(index);}function playBeep(){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.type='sine';o.frequency.setValueAtTime(880,c.currentTime);o.connect(c.destination);o.start();o.stop(c.currentTime+.8);}catch(_){}}
-    function setupKeyboardShortcuts(){document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();toggleTimer();}else if(e.code==='ArrowRight')nextCP();else if(e.code==='ArrowLeft')prevCP();else if(e.code==='KeyR')resetTimer();});}
+    const VI_REPLACEMENTS = [['definition of done', 'tiêu chí hoàn thành'], ['Scope freeze', 'Chốt phạm vi'], ['scope freeze', 'chốt phạm vi'], ['source evidence', 'bằng chứng từ nguồn'], ['quality signals', 'tín hiệu quality'], ['metric change', 'thay đổi metric'], ['smoke test', 'kiểm tra nhanh'], ['hard-code', 'mã hóa cứng'], ['fallback', 'phương án dự phòng'], ['success', 'thành công'], ['owner', 'người phụ trách'], ['settings', 'cấu hình'], ['source', 'nguồn'], ['output', 'đầu ra'], ['evidence', 'bằng chứng'], ['signals', 'tín hiệu'], ['factual', 'theo dữ kiện'], ['Implement', 'Hoàn thiện'], ['Build', 'Tạo'], ['Review', 'Rà soát'], ['Run', 'Chạy'], ['Check', 'Kiểm tra'], ['Verify', 'Xác minh'], ['Demo', 'Trình bày'], ['Reload', 'Nạp lại'], ['Data foundation', 'Nền tảng dữ liệu'], ['Pipeline integrator', 'Điều phối pipeline'], ['Integrator & release owner', 'Điều phối & phụ trách release'], ['Ingestion owner', 'Phụ trách ingestion'], ['Cleaning & corruption owner', 'Phụ trách cleaning & corruption'], ['RAG & agent owner', 'Phụ trách RAG & agent'], ['Observability & reporting', 'Observability & báo cáo'], ['Data foundation & recovery', 'Nền tảng dữ liệu & recovery']];
+    function toVietnamese(value) { return VI_REPLACEMENTS.reduce((text, [from, to]) => text.replaceAll(from, to), String(value)); }
+    let currentCPIndex = 0, teamSize = 4, timeLeftSeconds = CHECKPOINTS[0].minutes * 60, timerInterval = null, isRunning = false;
+    window.addEventListener('DOMContentLoaded', () => { renderStepper(); loadCheckpoint(0); setupKeyboardShortcuts(); });
+    function current() { return CHECKPOINTS[currentCPIndex]; }
+    function renderStepper() { const el = document.getElementById('stepper'); el.innerHTML = ''; Object.values(CHECKPOINTS).forEach((cp, index) => { const b = document.createElement('button'); b.className = `step-btn ${index === currentCPIndex ? 'active' : ''}`; b.innerHTML = `<span>CP${index}</span>`; b.title = cp.badge; b.setAttribute('aria-label', cp.badge); b.onclick = () => jumpToCP(index); el.appendChild(b); }); }
+    function setTeamSize(size) { teamSize = size; document.querySelectorAll('.team-opt').forEach(opt => opt.classList.toggle('active', opt.textContent === `Nhóm ${size}`)); document.getElementById('team-info-label').innerText = `Đang chọn: Nhóm ${size} người`; document.getElementById('roles-container').className = `roles-grid grid-${size}`; renderRoles(); }
+    function loadCheckpoint(index) { currentCPIndex = index; const cp = current(); document.querySelectorAll('.step-btn').forEach((b, i) => { b.classList.toggle('active', i === index); b.classList.toggle('completed', i < index); }); document.getElementById('cp-badge').innerText = cp.badge; document.getElementById('cp-title').innerText = toVietnamese(cp.title); document.getElementById('cp-pass').innerText = toVietnamese(cp.pass); document.getElementById('cp-cmd').innerText = cp.cmd; document.getElementById('checkpoint-note').innerHTML = `<b>Lưu ý mốc này:</b> ${toVietnamese(cp.warn)}`; document.getElementById('time-input').value = cp.minutes; document.getElementById('time-note').innerText = `${cp.badge.replace(/^CHECKPOINT \\d+ · /, '')} · timeline gốc vẫn tổng cộng 04:00.`; pauseTimer(); timeLeftSeconds = cp.minutes * 60; updateClockDisplay(); renderRoles(); }
+    function renderRoles() { const cp = current(), roles = TEAM_ROLES[teamSize], box = document.getElementById('roles-container'); box.innerHTML = ''; roles.forEach((entry, index) => { const [workKeys, name, goal, file] = entry, steps = workKeys.split('|').flatMap(key => cp.work[key] || []) || []; const visibleSteps = steps.length ? steps : ['Rà soát phần tích hợp và gửi blocker kèm bằng chứng.', 'Không bắt đầu việc ngoài dependency của giai đoạn.']; const card = document.createElement('div'); card.className = 'role-card'; card.innerHTML = `<div><div class="role-head"><span class="role-badge badge-r${index + 1}">VAI TRÒ ${index + 1}</span><span class="role-name">${toVietnamese(name)}</span></div><div style="margin-top:6px"><div class="role-section-label">Phạm vi phụ trách</div><div class="role-goal">${toVietnamese(goal)}</div></div><div style="margin-top:6px"><div class="role-section-label">Trong mốc này</div><ul class="steps-list">${visibleSteps.map((x, i) => `<li><span class="step-num">${i + 1}.</span><span>${toVietnamese(x)}</span></li>`).join('')}</ul></div></div><div class="file-loc"><div class="file-loc-text">📂 ${file}</div><span class="file-loc-tag">Xử lý</span></div>`; box.appendChild(card); }); }
+    function updateClockDisplay() { const m = Math.floor(timeLeftSeconds / 60), s = timeLeftSeconds % 60, clock = document.getElementById('clock'); clock.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; clock.classList.remove('warning', 'danger'); if (timeLeftSeconds <= 60) clock.classList.add('danger'); else if (timeLeftSeconds <= 300) clock.classList.add('warning'); }
+    function toggleTimer() { isRunning ? pauseTimer() : startTimer(); } function startTimer() { if (isRunning) return; isRunning = true; document.getElementById('btn-toggle-text').innerText = 'TẠM DỪNG'; document.getElementById('btn-toggle').style.background = 'var(--warning)'; timerInterval = setInterval(() => { if (timeLeftSeconds > 0) { timeLeftSeconds--; updateClockDisplay(); } else { pauseTimer(); playBeep(); alert(`⏰ Hết thời gian: ${current().title}. Kiểm tra Pass Criteria trước khi chuyển checkpoint.`); } }, 1000); } function pauseTimer() { isRunning = false; clearInterval(timerInterval); document.getElementById('btn-toggle-text').innerText = 'BẮT ĐẦU'; document.getElementById('btn-toggle').style.background = 'var(--primary)'; } function resetTimer() { pauseTimer(); timeLeftSeconds = current().minutes * 60; updateClockDisplay(); } function updateCustomTime() { const value = parseInt(document.getElementById('time-input').value, 10); if (Number.isFinite(value) && value > 0) { pauseTimer(); timeLeftSeconds = value * 60; updateClockDisplay(); } }
+    function nextCP() { if (currentCPIndex < Object.keys(CHECKPOINTS).length - 1) loadCheckpoint(currentCPIndex + 1); } function prevCP() { if (currentCPIndex > 0) loadCheckpoint(currentCPIndex - 1); } function jumpToCP(index) { loadCheckpoint(index); } function playBeep() { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(880, c.currentTime); o.connect(c.destination); o.start(); o.stop(c.currentTime + .8); } catch (_) { } }
+    function setupKeyboardShortcuts() { document.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT') return; if (e.code === 'Space') { e.preventDefault(); toggleTimer(); } else if (e.code === 'ArrowRight') nextCP(); else if (e.code === 'ArrowLeft') prevCP(); else if (e.code === 'KeyR') resetTimer(); }); }
   </script>
 </body>
+
 </html>

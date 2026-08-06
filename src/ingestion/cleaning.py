@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
 
+from core.clean_contract import persist_cleaning_summary
+from core.config import Settings
 from ingestion.crossref import PaperRecord
 
 
@@ -145,4 +149,49 @@ def build_clean_dataframe(records: list[PaperRecord], run_date: datetime) -> pd.
     stats["output_records"] = len(dataframe)
     stats["filtered_total"] = len(records) - len(dataframe)
     dataframe.attrs["cleaning_stats"] = stats
+
+    filtered_reasons = {
+        "missing_paper_id": stats.get("filtered_missing_paper_id", 0),
+        "missing_title": stats.get("filtered_missing_title", 0),
+        "short_summary": stats.get("filtered_short_summary", 0),
+        "invalid_published": stats.get("filtered_invalid_published", 0),
+    }
+    dedup_reasons = {
+        "duplicate_paper_id": stats.get("deduplicated_paper_id", 0),
+    }
+    filtered_count = sum(filtered_reasons.values())
+    deduplicated_count = sum(dedup_reasons.values())
+
+    dataframe.attrs["cleaning_summary"] = {
+        "filtered_count": filtered_count,
+        "deduplicated_count": deduplicated_count,
+        "reason_counts": {
+            "filtered": {k: v for k, v in filtered_reasons.items() if v > 0},
+            "deduplicated": {k: v for k, v in dedup_reasons.items() if v > 0},
+        },
+    }
+
     return dataframe
+
+
+def save_clean_data(dataframe: pd.DataFrame, settings: Settings, raw_count: int | None = None) -> None:
+    """Luu clean dataframe ra CSV va JSON tai settings.paths, dong thoi persist cleaning summary."""
+    paths = settings.paths
+    paths.clean_csv.parent.mkdir(parents=True, exist_ok=True)
+    paths.clean_json.parent.mkdir(parents=True, exist_ok=True)
+    paths.cleaning_summary.parent.mkdir(parents=True, exist_ok=True)
+
+    # Lưu ra CSV
+    dataframe.to_csv(paths.clean_csv, index=False)
+
+    # Lưu ra JSON records
+    records = dataframe.to_dict(orient="records")
+    paths.clean_json.write_text(
+        json.dumps(records, ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8",
+    )
+
+    if raw_count is None:
+        raw_count = dataframe.attrs.get("cleaning_stats", {}).get("input_records", len(dataframe))
+
+    persist_cleaning_summary(settings, raw_count=raw_count, clean_df=dataframe)

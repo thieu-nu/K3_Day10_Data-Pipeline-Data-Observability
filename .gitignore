@@ -5,3 +5,10 @@ lab.txt
 src/*.egg-info/
 lab/
 **/__pycache__/
+/data/chroma
+/data/embeddings
+/data/quality
+/data/quality
+/data/reports
+/tests
+/data/quality

@@ -1,0 +1,11 @@
+{
+  "filtered_count": 0,
+  "deduplicated_count": 0,
+  "reason_counts": {
+    "filtered": {},
+    "deduplicated": {}
+  },
+  "contract_version": "clean-v1",
+  "raw_count": 24,
+  "clean_count": 24
+}

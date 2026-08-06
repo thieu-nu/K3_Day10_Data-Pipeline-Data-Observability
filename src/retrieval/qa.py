@@ -20,13 +20,13 @@ class AnswerResult:
 def _extract_answer(question: str, top_result: SearchResult) -> str:
     lowered = question.lower()
     metadata = top_result.metadata
-    if "who authored" in lowered or "list the authors" in lowered:
-        return metadata["authors_joined"]
-    if "when was" in lowered or "publication date" in lowered or "published on" in lowered:
-        return metadata["published"]
-    if "what categories" in lowered:
-        return metadata["categories_joined"]
-    return first_sentence(metadata["summary"])
+    if "who authored" in lowered or "list the authors" in lowered or "author" in lowered:
+        return str(metadata.get("authors_joined") or "unspecified")
+    if "when was" in lowered or "publication date" in lowered or "published on" in lowered or "published" in lowered:
+        return str(metadata.get("published") or "unspecified")
+    if "what categories" in lowered or "category" in lowered or "categories" in lowered or "subject" in lowered:
+        return str(metadata.get("categories_joined") or "unspecified")
+    return first_sentence(str(metadata.get("summary") or ""))
 
 
 def answer_question(question: str, settings: Settings, index: LocalEmbeddingIndex, top_k: int | None = None) -> AnswerResult:
@@ -51,6 +51,9 @@ def answer_question(question: str, settings: Settings, index: LocalEmbeddingInde
         question=question,
         answer=answer,
         retrieved_doc_ids=[item.paper_id for item in retrieved],
-        retrieved_contexts=[item.content for item in retrieved],
+        retrieved_contexts=[
+            f"Paper ID/DOI: {item.paper_id} | Title: {item.title} | Published Date: {item.metadata.get('published', 'N/A')} | Categories: {item.metadata.get('categories_joined', 'N/A')} | Authors: {item.metadata.get('authors_joined', 'N/A')} | Summary: {item.metadata.get('summary', item.content)}"
+            for item in retrieved
+        ],
         retrieved_titles=[item.title for item in retrieved],
     )

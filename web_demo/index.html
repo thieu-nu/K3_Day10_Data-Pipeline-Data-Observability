@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 10 Lab Demo — Data Pipeline & Observability (Role 2 Ingestion)</title>
+  <meta name="description"
+    content="Interactive visualizer and RAG testing dashboard for Day 10 Data Pipeline, Data Observability, and Corruption Recovery Flow.">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header id="app-header">
+    <div class="logo-area">
+      <div class="logo-icon">V2</div>
+      <div class="logo-text">
+        <h1>Data Pipeline & Observability Lab</h1>
+        <span>Đồ án Day 10 — Nhóm: <strong>5 nang cong chua</strong></span>
+      </div>
+    </div>
+
+    <nav aria-label="Main Navigation">
+      <button class="nav-btn active" data-tab="tab-overview" id="btn-overview">📊 Pipeline & Lineage</button>
+      <button class="nav-btn" data-tab="tab-compare" id="btn-compare">⚡ Phase 2 Comparison</button>
+      <button class="nav-btn" data-tab="tab-rag" id="btn-rag">🤖 Interactive RAG Agent</button>
+      <button class="nav-btn" data-tab="tab-gate" id="btn-gate">🛡️ Clean Contract Gate</button>
+    </nav>
+
+  </header>
+
+  <main id="main-content">
+    <!-- TAB 1: OVERVIEW & PIPELINE LINEAGE -->
+    <section id="tab-overview" class="tab-content active">
+      <div class="hero-card">
+        <h2 class="hero-title">Self-Healing RAG <span class="gradient-text">Data Pipeline & Observability</span></h2>
+        <p class="hero-desc">
+          Hệ thống kiến trúc tự động hóa khép kín: Tải bản ghi từ Crossref REST API, bảo lưu phả hệ nguồn (Raw Lineage),
+          lọc làm sạch ETL qua trạm kiểm soát Clean Contract Gate C1, nhúng ma trận Vector MiniLM vào ChromaDB, và kiểm
+          thử độ uyên bác LLM RAG Agent.
+        </p>
+
+        <div class="stats-bar">
+          <div class="stat-card">
+            <div class="stat-value">24</div>
+            <div class="stat-label">Crossref Raw Records</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">100%</div>
+            <div class="stat-label">Baseline Hit Rate</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">20/20</div>
+            <div class="stat-label">Immutable Test Set</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" style="color: #10B981;">PASSED</div>
+            <div class="stat-label">Quality & Freshness Gate</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🔄 Interactive End-to-End Pipeline Lineage</span>
+          <span class="badge badge-info">Click từng bước để rà soát artifact</span>
+        </div>
+
+        <div class="pipeline-track">
+          <div class="pipeline-step active" data-step="step1">
+            <div class="step-number">1</div>
+            <div class="step-title">Ingestion & Raw Lineage</div>
+            <div class="step-role">Đàm Minh Tuấn</div>
+          </div>
+          <div class="pipeline-connector"></div>
+
+          <div class="pipeline-step" data-step="step2">
+            <div class="step-number">2</div>
+            <div class="step-title">Cleaning & Sanitization</div>
+            <div class="step-role">Đinh Huy Mạnh</div>
+          </div>
+          <div class="pipeline-connector"></div>
+
+          <div class="pipeline-step" data-step="step3">
+            <div class="step-number">3</div>
+            <div class="step-title">Clean Contract Gate</div>
+            <div class="step-role">Trần Hoàng Quân</div>
+          </div>
+          <div class="pipeline-connector"></div>
+
+          <div class="pipeline-step" data-step="step4">
+            <div class="step-number">4</div>
+            <div class="step-title">Vector Index (Chroma)</div>
+            <div class="step-role">Lê Minh Khiêm</div>
+          </div>
+          <div class="pipeline-connector"></div>
+
+          <div class="pipeline-step" data-step="step5">
+            <div class="step-number">5</div>
+            <div class="step-title">Observability & Eval</div>
+            <div class="step-role">Nguyễn Quang Hưng</div>
+          </div>
+        </div>
+
+        <div class="step-details-panel" id="panel-details">
+          <h3 id="step-detail-title" style="color: var(--accent-cyan); margin-bottom: 0.5rem; font-size: 1.3rem;">1. Raw
+            Ingestion & Lineage</h3>
+          <p id="step-detail-owner" style="color: var(--accent-blue); font-weight: 600; margin-bottom: 1rem;">Vai trò 2:
+            Đàm Minh Tuấn (2A202601169)</p>
+          <p id="step-detail-desc" style="margin-bottom: 1.5rem; color: var(--text-secondary); line-height: 1.7;">Kết
+            nối Crossref REST API với Exponential Backoff & Retry. Thu lúa 24 bài báo khoa học chuẩn hóa về đối tượng
+            PaperRecord. Bản gốc không bị can thiệp được phong tỏa lưu trú trong data/raw/ để truy vết Lineage và phục
+            hồi sau này.</p>
+
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <div>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">📁 Generated Artifacts: </span>
+              <code id="step-detail-artifacts"
+                style="font-family: var(--font-code); color: var(--text-primary);">data/raw/crossref_response.json | data/raw/crossref_records.json</code>
+            </div>
+            <div>
+              <span class="badge badge-pass" id="step-detail-status">PASSED (24/24 records fetched)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: PHASE 2 COMPARISON (CORRUPTION & REPAIR) -->
+    <section id="tab-compare" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>📈 Phase 2 Performance Comparison</span>
+            <span class="badge badge-info">Step 14 Verified</span>
+          </div>
+
+          <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem;">
+            So sánh hiệu năng thực tế của RAG Agent trên 3 trạng thái dữ liệu: Gốc (Baseline), Bị lỗi (Corrupted: mất
+            bài mới & xóa tóm tắt), và Phục hồi (Repaired từ nguồn thô của Role 2).
+          </p>
+
+          <div class="metric-row">
+            <div class="metric-header">
+              <span>Retrieval Hit Rate (Baseline / Repaired)</span>
+              <span style="color: var(--status-pass);">100.0%</span>
+            </div>
+            <div class="metric-bar-container">
+              <div class="metric-bar-fill fill-baseline"></div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-header">
+              <span>Retrieval Hit Rate (Corrupted Data Drop)</span>
+              <span style="color: var(--status-fail);">60.0% (-40% Loss)</span>
+            </div>
+            <div class="metric-bar-container">
+              <div class="metric-bar-fill fill-corrupt-hit"></div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-header">
+              <span>Mean Token F1 Score (Baseline & Repaired vs Corrupted)</span>
+              <span>0.2465 vs 0.1248</span>
+            </div>
+            <div class="metric-bar-container">
+              <div class="metric-bar-fill fill-corrupt-f1"></div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-header">
+              <span>LLM Judge Accuracy (Baseline & Repaired vs Corrupted)</span>
+              <span>50.0% vs 20.0%</span>
+            </div>
+            <div class="metric-bar-container">
+              <div class="metric-bar-fill fill-corrupt-acc"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>💻 Live Pipeline Execution Logs</span>
+            <span class="badge badge-pass">RUNNING VIA UVICORN / PYTHON</span>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+            Quá trình thi hành script <code>run_corruption_flow.py</code> thu lúa minh chứng từ trạm rađa giám sát.
+          </p>
+          <div class="console-box" id="console-log">
+            <!-- Simulated Logs injected via JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>📋 Bảng tổng hợp đối sánh chỉ số và cảm biến (corruption_report.md)</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Chỉ số quan sát (Metric / Gate)</th>
+              <th>Baseline (Chuẩn gốc)</th>
+              <th>Corrupted (Bị tiêm lỗi)</th>
+              <th>Repaired (Phục hồi từ Raw)</th>
+              <th>Đánh giá của Kỹ sư Ingestion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Retrieval Hit Rate</strong></td>
+              <td><span class="badge badge-pass">100.0%</span></td>
+              <td><span class="badge badge-fail">60.0%</span></td>
+              <td><span class="badge badge-pass">100.0%</span></td>
+              <td>Phục hồi trọn vẹn nhờ bộ đệm immutable raw_records.json của Role 2!</td>
+            </tr>
+            <tr>
+              <td><strong>Mean Token F1</strong></td>
+              <td>0.2465</td>
+              <td>0.1248</td>
+              <td>0.2465</td>
+              <td>Khi tóm tắt rỗng bị tẩy sạch thô rác, độ khớp câu từ Agent thăng hạng ngay trở lại.</td>
+            </tr>
+            <tr>
+              <td><strong>LLM Judge Accuracy</strong></td>
+              <td>50.0%</td>
+              <td>20.0%</td>
+              <td>50.0%</td>
+              <td>LLM hết ảo giác (Hallucination) ngay khi cơ sở vector nhận lại ngữ cảnh đúng.</td>
+            </tr>
+            <tr>
+              <td><strong>Data Quality Check</strong></td>
+              <td><span style="color: #10B981; font-weight: 700;">PASSED</span></td>
+              <td><span style="color: #EF4444; font-weight: 700;">FAILED (Dup/Empty)</span></td>
+              <td><span style="color: #10B981; font-weight: 700;">PASSED</span></td>
+              <td>Trạm gác chất lượng vây chíp thành công các dòng lặp và tóm tắt &lt; 100 ký tự.</td>
+            </tr>
+            <tr>
+              <td><strong>Freshness Status</strong></td>
+              <td><span style="color: #10B981; font-weight: 700;">PASSED</span></td>
+              <td><span style="color: #EF4444; font-weight: 700;">FAILED (Stale &gt; 180d)</span></td>
+              <td><span style="color: #10B981; font-weight: 700;">PASSED</span></td>
+              <td>Phát hiện lập tức dữ liệu thời gian cũ mốc (năm 2020) và loại trừ ra khỏi cỗ RAG.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: INTERACTIVE RAG AGENT CHAT -->
+    <section id="tab-rag" class="tab-content">
+      <div class="chat-container">
+        <div class="chat-header">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; display: inline-block; margin-right: 1rem;">
+              🤖 AI Agent Query Console</h3>
+            <span class="badge badge-pass" id="db-status-pill">HEALTHY | Hit Rate: 100.0%</span>
+          </div>
+
+          <div class="db-selector" aria-label="Vector Store Selection">
+            <button class="db-option active" data-db="baseline">🌿 Baseline DB</button>
+            <button class="db-option" data-db="corrupted">⚠️ Corrupted DB</button>
+            <button class="db-option" data-db="repaired">🔄 Repaired DB</button>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages" role="log" aria-live="polite">
+          <div class="message bot">
+            <div>Chào bạn <strong></strong>! Tôi là RAG Agent được tích hợp trên bộ dữ liệu 24 bài báo khoa
+              học về AI RAG thu trích từ <strong>Crossref API</strong>. Hiện tôi đang kết nối tới <strong>Baseline
+                Vector Index</strong>. Hãy lựa chọn đĩa dữ liệu phía trên hoặc chọn câu hỏi để trải nghiệm!</div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <select id="question-select" aria-label="Sample Test Questions">
+            <option value="q1">Q1 (Summary): What is the main content of 'Reliability of AI Pipelines'?</option>
+            <option value="q2">Q2 (Fact lookup): Who authored the paper DOI 10.1000/mock1 and what category is it?
+            </option>
+            <option value="q3">Q3 (Contract logic): How does Clean Contract Gate prevent corrupted embeddings?</option>
+          </select>
+
+          <input type="text" id="custom-question" placeholder="Hoặc tự gõ câu hỏi truy vết ngẫu nhiên tại đây..."
+            aria-label="Custom Question Input">
+
+          <button id="btn-send" class="btn-send">
+            <span>Gửi câu hỏi</span>
+            <span>➤</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CLEAN CONTRACT GATE C1 INSPECTOR -->
+    <section id="tab-gate" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>🛡️ Clean Contract Gate C1 Simulator</span>
+            <span class="badge badge-info">Role 1 & Role 2 Handoff</span>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+            Mô phỏng cơ chế đóng ngắt tự động (Fail-Closed) trước khi đưa dữ liệu xuống mô-đun Embeddings của Khiêm.
+            Chọn mẫu dữ liệu kiểm thử để kiểm tra khả năng bắt rác của hệ thống:
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+            <label for="gate-sample" style="font-weight: 600;">Chọn mẫu luồng dữ liệu kiểm thử (Ingestion
+              Snapshot):</label>
+            <select id="gate-sample"
+              style="background: #0B0E17; border: 1px solid var(--border-color); color: #FFF; padding: 0.8rem; border-radius: 8px;">
+              <option value="valid">✅ [Valid Snapshot]: 24/24 records, summary &gt; 100 chars, SHA-256 matched</option>
+              <option value="short">❌ [Violation C1]: 3 records have short summary (&lt; 100 chars)</option>
+              <option value="stale">⏰ [Stale Violation]: Timestamp set to year 2020 (Age &gt; 180 days)</option>
+            </select>
+
+            <button id="btn-test-gate" class="btn-send" style="padding: 1rem; justify-content: center; width: 100%;">
+              <span>🔬 Chạy kiểm định Clean Contract Gate</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card" id="gate-result-box"
+          style="justify-content: center; align-items: center; border: 2px dashed var(--border-color);">
+          <p style="color: var(--text-muted); text-align: center;">👆 Nhấn nút bên trái để kích hoạt mô phỏng trạm rađa
+            kiểm soát khế ước dữ liệu.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

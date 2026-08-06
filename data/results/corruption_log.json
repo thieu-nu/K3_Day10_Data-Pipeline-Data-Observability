@@ -1,0 +1,21 @@
+{
+  "original_row_count": 24,
+  "corrupted_row_count": 23,
+  "dropped_latest_records": 2,
+  "blanked_summary_rows": [
+    0,
+    1
+  ],
+  "noise_injected_rows": [
+    2
+  ],
+  "truncated_title_rows": [
+    3
+  ],
+  "staled_date_rows": [
+    1,
+    2
+  ],
+  "duplicate_rows_added": 1,
+  "status": "corrupted"
+}
