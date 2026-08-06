@@ -80,6 +80,21 @@ class LocalEmbeddingIndex:
             return name_map[resolved_path]
         return safe_slug(embeddings_output_path.stem)
 
+    @staticmethod
+    def _portable_persist_path(settings: Settings, persist_path: Path) -> str:
+        """Store project-local Chroma paths without machine-specific prefixes."""
+        try:
+            return persist_path.resolve().relative_to(settings.paths.project_dir.resolve()).as_posix()
+        except ValueError:
+            return str(persist_path)
+
+    @staticmethod
+    def _resolve_persist_path(settings: Settings, manifest_path: str) -> Path:
+        persist_path = Path(manifest_path)
+        if not persist_path.is_absolute():
+            persist_path = settings.paths.project_dir / persist_path
+        return persist_path.resolve()
+
     @classmethod
     def build(
         cls,
@@ -116,7 +131,7 @@ class LocalEmbeddingIndex:
             {
                 "backend": "chroma",
                 "embedding_model": settings.embedding_model,
-                "persist_path": str(persist_path),
+                "persist_path": cls._portable_persist_path(settings, persist_path),
                 "collection_name": collection_name,
                 "documents": documents,
             },
@@ -135,7 +150,7 @@ class LocalEmbeddingIndex:
             settings=settings,
             collection_name=payload["collection_name"],
             documents=payload["documents"],
-            persist_path=Path(payload["persist_path"]),
+            persist_path=cls._resolve_persist_path(settings, payload["persist_path"]),
         )
 
     def search(self, query: str, top_k: int | None = None) -> list[SearchResult]:
