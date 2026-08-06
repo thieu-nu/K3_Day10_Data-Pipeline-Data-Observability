@@ -16,6 +16,7 @@ class Paths:
     raw_records_json: Path
     clean_csv: Path
     clean_json: Path
+    cleaning_summary: Path
     chroma_dir: Path
     embeddings_json: Path
     corrupted_clean_csv: Path
@@ -29,6 +30,7 @@ class Paths:
     baseline_answers: Path
     demo_answers: Path
     quality_dir: Path
+    clean_gate_report: Path
     gx_dir: Path
     freshness_report: Path
     baseline_report: Path
@@ -84,6 +86,7 @@ def load_settings(project_dir: Path | None = None) -> Settings:
         raw_records_json=data_dir / "raw" / "crossref_records.json",
         clean_csv=data_dir / "clean" / "papers_clean.csv",
         clean_json=data_dir / "clean" / "papers_clean.json",
+        cleaning_summary=data_dir / "clean" / "cleaning_summary.json",
         chroma_dir=data_dir / "chroma",
         embeddings_json=data_dir / "embeddings" / "papers_embeddings.json",
         corrupted_clean_csv=data_dir / "clean" / "papers_clean_corrupted.csv",
@@ -97,6 +100,7 @@ def load_settings(project_dir: Path | None = None) -> Settings:
         baseline_answers=data_dir / "results" / "baseline_answers.json",
         demo_answers=data_dir / "results" / "agent_demo_answers.json",
         quality_dir=data_dir / "quality",
+        clean_gate_report=data_dir / "quality" / "clean_contract_gate.json",
         gx_dir=data_dir / "quality" / "gx",
         freshness_report=data_dir / "quality" / "freshness_report.json",
         baseline_report=data_dir / "reports" / "phase1_report.md",
