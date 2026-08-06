@@ -1,4 +1,6 @@
+import dataclasses
 import json
+import shutil
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -68,29 +70,40 @@ def test_parse_crossref_payload(sample_crossref_payload):
     assert record.pdf_url == "https://example.com/paper.pdf"
 
 
-def test_fetch_and_load_source_records(tmp_path, sample_crossref_payload):
+@pytest.fixture
+def local_tmp_path():
+    path = Path(__file__).resolve().parent / ".tmp" / "test_crossref"
+    if path.exists():
+        shutil.rmtree(path, ignore_errors=True)
+    path.mkdir(parents=True, exist_ok=True)
+    yield path
+    shutil.rmtree(path, ignore_errors=True)
+
+
+def test_fetch_and_load_source_records(local_tmp_path, sample_crossref_payload):
     settings = load_settings()
-    # Override paths to use tmp_path
-    raw_api = tmp_path / "raw_response.json"
-    raw_records = tmp_path / "raw_records.json"
+    # Override paths to use local_tmp_path using dataclasses.replace
+    raw_api = local_tmp_path / "raw_response.json"
+    raw_records = local_tmp_path / "raw_records.json"
     
-    # Using patch to redirect file paths in settings
-    with patch.object(settings.paths, "raw_api_response", raw_api), patch.object(
-        settings.paths, "raw_records_json", raw_records
-    ):
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = sample_crossref_payload
+    new_paths = dataclasses.replace(
+        settings.paths, raw_api_response=raw_api, raw_records_json=raw_records
+    )
+    settings = dataclasses.replace(settings, paths=new_paths)
 
-        with patch("requests.get", return_value=mock_response) as mock_get:
-            records = fetch_source_records(settings)
-            mock_get.assert_called_once()
-            assert len(records) == 1
-            assert raw_api.exists()
-            assert raw_records.exists()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = sample_crossref_payload
 
-            # Verify loading back
-            loaded_records = load_raw_records(raw_records)
-            assert len(loaded_records) == 1
-            assert loaded_records[0].paper_id == records[0].paper_id
-            assert loaded_records[0].title == records[0].title
+    with patch("requests.get", return_value=mock_response) as mock_get:
+        records = fetch_source_records(settings)
+        mock_get.assert_called_once()
+        assert len(records) == 1
+        assert raw_api.exists()
+        assert raw_records.exists()
+
+        # Verify loading back
+        loaded_records = load_raw_records(raw_records)
+        assert len(loaded_records) == 1
+        assert loaded_records[0].paper_id == records[0].paper_id
+        assert loaded_records[0].title == records[0].title
